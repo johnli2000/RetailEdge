@@ -1,6 +1,6 @@
 object AboutForm: TAboutForm
   Left = 480
-  Top = 125
+  Top = 119
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Vii POS Software'
@@ -367,7 +367,7 @@ object AboutForm: TAboutForm
     object bsSkinStdLabel10: TbsSkinStdLabel
       Left = 54
       Top = 127
-      Width = 138
+      Width = 165
       Height = 16
       EllipsType = bsetNone
       UseSkinFont = False
@@ -384,7 +384,7 @@ object AboutForm: TAboutForm
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      Caption = 'www.ViiPOS.com.au'
+      Caption = 'www.retail-edge.com.au'
       ParentFont = False
     end
     object bsSkinTextLabel1: TbsSkinTextLabel
