@@ -1,0 +1,141 @@
+object PrintBarcodeForm: TPrintBarcodeForm
+  Left = 511
+  Top = 222
+  Width = 263
+  Height = 195
+  BorderIcons = []
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  WindowState = wsMaximized
+  PixelsPerInch = 96
+  TextHeight = 13
+  object TextPipeline: TppTextPipeline
+    UserName = 'TextPipeline'
+    Left = 24
+    Top = 16
+  end
+  object Report: TppReport
+    AutoStop = False
+    Columns = 2
+    DataPipeline = TextPipeline
+    PassSetting = psTwoPass
+    PrinterSetup.BinName = 'Default'
+    PrinterSetup.DocumentName = 'Report'
+    PrinterSetup.PaperName = 'A4'
+    PrinterSetup.PrinterName = 'Default'
+    PrinterSetup.mmMarginBottom = 0
+    PrinterSetup.mmMarginLeft = 5000
+    PrinterSetup.mmMarginRight = 0
+    PrinterSetup.mmMarginTop = 0
+    PrinterSetup.mmPaperHeight = 297000
+    PrinterSetup.mmPaperWidth = 210000
+    PrinterSetup.PaperSize = 9
+    Units = utMillimeters
+    DeviceType = 'Screen'
+    OnPreviewFormCreate = ReportPreviewFormCreate
+    OutlineSettings.CreateNode = True
+    OutlineSettings.CreatePageNodes = True
+    OutlineSettings.Enabled = False
+    OutlineSettings.Visible = False
+    TextSearchSettings.DefaultString = '<FindText>'
+    TextSearchSettings.Enabled = False
+    Left = 58
+    Top = 16
+    Version = '7.02'
+    mmColumnWidth = 68500
+    DataPipelineName = 'TextPipeline'
+    object ppHeaderBand1: TppHeaderBand
+      mmBottomOffset = 0
+      mmHeight = 13494
+      mmPrintPosition = 0
+    end
+    object ppColumnHeaderBand1: TppColumnHeaderBand
+      mmBottomOffset = 0
+      mmHeight = 0
+      mmPrintPosition = 0
+    end
+    object DetailBand: TppDetailBand
+      mmBottomOffset = 0
+      mmHeight = 24500
+      mmPrintPosition = 0
+      object TextLabel: TppDBText
+        UserName = 'TextLabel'
+        DataField = 'Description'
+        DataPipeline = TextPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 10
+        Font.Style = []
+        ParentDataPipeline = False
+        Transparent = True
+        WordWrap = True
+        DataPipelineName = 'TextPipeline'
+        mmHeight = 7938
+        mmLeft = 4498
+        mmTop = 529
+        mmWidth = 58738
+        BandType = 4
+      end
+      object BarcodeLabel: TppDBBarCode
+        UserName = 'BarcodeLabel'
+        AutoEncode = True
+        BarCodeType = bcCode128
+        BarColor = clWindowText
+        DataField = 'Barcode'
+        DataPipeline = TextPipeline
+        AutoSize = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Courier New'
+        Font.Size = 8
+        Font.Style = []
+        Transparent = True
+        DataPipelineName = 'TextPipeline'
+        mmHeight = 12700
+        mmLeft = 4498
+        mmTop = 9790
+        mmWidth = 43921
+        BandType = 4
+        mmBarWidth = 254
+        mmWideBarRatio = 76200
+      end
+      object ppDBText1: TppDBText
+        UserName = 'DBText1'
+        OnGetText = ppDBText1GetText
+        AutoSize = True
+        DataField = 'Price'
+        DataPipeline = TextPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 16
+        Font.Style = [fsBold]
+        ParentDataPipeline = False
+        TextAlignment = taRightJustified
+        Transparent = True
+        DataPipelineName = 'TextPipeline'
+        mmHeight = 6615
+        mmLeft = 47890
+        mmTop = 12171
+        mmWidth = 13758
+        BandType = 4
+      end
+    end
+    object ppColumnFooterBand1: TppColumnFooterBand
+      mmBottomOffset = 0
+      mmHeight = 0
+      mmPrintPosition = 0
+    end
+    object ppFooterBand1: TppFooterBand
+      mmBottomOffset = 0
+      mmHeight = 265
+      mmPrintPosition = 0
+    end
+  end
+end

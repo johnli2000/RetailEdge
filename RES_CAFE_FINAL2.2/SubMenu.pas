@@ -1,0 +1,900 @@
+unit SubMenu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Mask, StdCtrls, ExtCtrls, Buttons, Grids, UtilUnit, Db, DataUnit,
+  ADODB, CommDrv, bsSkinCtrls, PanelButton, XiButton, MainMenu, SUIButton;
+
+type
+  TSubMenuForm = class(TForm)
+    UnChoiceItemQuery: TADOQuery;
+    SubMenuQuery: TADOQuery;
+    BackPanel: TbsSkinPanel;
+    SubMenu1: TPanelButton;
+    SubMenu2: TPanelButton;
+    SubMenu3: TPanelButton;
+    SubMenu4: TPanelButton;
+    SubMenu5: TPanelButton;
+    SubMenu6: TPanelButton;
+    SubMenu7: TPanelButton;
+    SubMenu8: TPanelButton;
+    SubMenu9: TPanelButton;
+    SubMenu10: TPanelButton;
+    SubMenu11: TPanelButton;
+    SubMenu12: TPanelButton;
+    SubMenu13: TPanelButton;
+    SubMenu14: TPanelButton;
+    SubMenu15: TPanelButton;
+    SubMenu16: TPanelButton;
+    SubMenu17: TPanelButton;
+    SubMenu18: TPanelButton;
+    SubMenu19: TPanelButton;
+    SubMenu20: TPanelButton;
+    SubMenu21: TPanelButton;
+    SubMenu22: TPanelButton;
+    SubMenu23: TPanelButton;
+    SubMenu24: TPanelButton;
+    SubMenu25: TPanelButton;
+    SubMenu26: TPanelButton;
+    SubMenu27: TPanelButton;
+    SubMenu28: TPanelButton;
+    SubMenu29: TPanelButton;
+    SubMenu30: TPanelButton;
+    SubMenu31: TPanelButton;
+    SubMenu32: TPanelButton;
+    SubMenu33: TPanelButton;
+    SubMenu34: TPanelButton;
+    SubMenu35: TPanelButton;
+    SubMenu36: TPanelButton;
+    SubMenu37: TPanelButton;
+    SubMenu38: TPanelButton;
+    SubMenu39: TPanelButton;
+    SubMenu40: TPanelButton;
+    SubMenu41: TPanelButton;
+    SubMenu42: TPanelButton;
+    SubMenu43: TPanelButton;
+    SubMenu44: TPanelButton;
+    CloseButton: TPanelButton;
+    SubMenuPriorButton: TPanelButton;
+    SubMenuNextButton: TPanelButton;
+    MainItemPanel: TbsSkinPanel;
+    MainItemDescriptionEdit: TbsSkinStdLabel;
+    Num1: TsuiButton;
+    Num2: TsuiButton;
+    Num3: TsuiButton;
+    Num4: TsuiButton;
+    Num5: TsuiButton;
+    Num6: TsuiButton;
+    Num7: TsuiButton;
+    Num8: TsuiButton;
+    Num9: TsuiButton;
+    QtyLb: TLabel;
+    procedure OpenSubMenuQuery(SQLStr: string);
+    procedure OpenSubMenu(ItemCode: string);
+    procedure ProcessSubMenuButtonTouch(Position: integer);
+    procedure AddUnChoiceItemToTableOrder;
+    procedure AddUnChoiceItemToQuickService;
+    procedure AddUnChoiceItemToPhoneOrder;
+    //procedure AddUnChoiceItemToBookDetail;
+    procedure CollectUnChoiceItem(ItemCode: string);
+    procedure AddSubMenuItemToTableOrder;
+    procedure AddSubMenuItemToQuickService;
+    procedure AddSubMenuItemToPhoneOrder;
+    procedure AddSubMenuItemToBookDetail;
+    procedure AddSubMenuItem;
+    procedure AssignSubMenuKeyBoard;
+    function  OpenUnChoiceItemQuery(SQLStr: string): boolean;
+    procedure FormShow(Sender: TObject);
+    procedure SubMenuClick(Sender: TObject);
+    procedure SubMenuPriorButtonClick(Sender: TObject);
+    procedure SubMenuNextButtonClick(Sender: TObject);
+    procedure CloseButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ProcessDirectLinkSubMenu;
+    procedure SubMenuMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure SubMenuMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure Num1Click(Sender: TObject);
+    procedure Num2Click(Sender: TObject);
+    procedure Num3Click(Sender: TObject);
+    procedure Num4Click(Sender: TObject);
+    procedure Num5Click(Sender: TObject);
+    procedure Num6Click(Sender: TObject);
+    procedure Num7Click(Sender: TObject);
+    procedure Num8Click(Sender: TObject);
+    procedure Num9Click(Sender: TObject);
+  private { Private declarations }
+   ChoicedItemsCount, CurrentSubMenuPage: integer;
+   Qty : string;
+  public  { Public declarations }
+    MainItemCode, MainItemDescription1, MainItemDescription2: string;
+    NumberOfChoice, OwnerNumber: integer;
+    Langurage: boolean;
+    Number : string;
+  end;
+
+implementation
+
+uses TableOrder, PointOfSales,  MessageBox, PhoneOrder, BookDetail;
+
+{$R *.DFM}
+
+procedure TSubMenuForm.OpenSubMenuQuery(SQLStr: string);
+begin
+ Screen.Cursor := crHourGlass;
+ with SubMenuQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+   CurrentSubMenuPage := 1;
+  end;
+end;
+
+procedure TSubMenuForm.OpenSubMenu(ItemCode: string);
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select MenuItem.ItemCode, Description1, Description2, ButtonColor, FontName, ' +
+           'FontColor, FontSize, FontBold, FontItalic, FontUnderline, FontStrikeout, ' +
+           'ButtonColor1, FontName1, FontColor1, FontSize1, FontBold1, FontItalic1, ' +
+           'FontUnderline1, FontStrikeout1, SalesPrice, TaxRate, OpenPrice, ' +
+           'AllowDiscount, SubMenuLinkDetail.Instruction, SubCategory,Scalable ' +
+           'From SubMenuLinkDetail, MenuItem Left Join ' +
+           '(Select ItemCode, SubCategory From SubMenuLinkHead ) As TempTable ' +
+           'On MenuItem.ItemCode=TempTable.ItemCode ' +
+           'Where MenuItem.ItemCode=SubMenuLinkDetail.SubMenuCode and ' +
+           'ChoiceItem <> 0 and SubMenuLinkDetail.ItemCode=' + Chr(39) + CheckQuotes(ItemCode) + Chr(39) +
+           ' Order By MenuItem.ItemCode';
+ OpenSubMenuQuery(SQLStr);
+end;
+
+procedure TSubMenuForm.AssignSubMenuKeyBoard;
+var
+ I: integer;
+ ButtonName: string;
+begin
+ SubMenuQuery.First;
+ SubMenuQuery.MoveBy((CurrentSubMenuPage - 1) * 28);
+ for I := 1 to 28 do
+  begin
+   ButtonName := 'SubMenu' + IntToStr(I);
+   with TPanelButton(FindComponent(ButtonName)) do
+    if Not SubMenuQuery.EOF then
+       begin
+        if Langurage or (SubMenuQuery.FieldByName('Description2').AsString = '') then
+           begin
+            Caption := CopyDescription(SubMenuQuery.FieldByName('Description1').AsString);
+            Color := SubMenuQuery.FieldByName('ButtonColor').AsInteger;
+            Font.Size := SubMenuQuery.FieldByName('FontSize').AsInteger;;
+            Font.Name := SubMenuQuery.FieldByName('FontName').AsString;
+            Font.Color := SubMenuQuery.FieldByName('FontColor').AsInteger;
+            Font.Style := [];
+            if SubMenuQuery.FieldByName('FontBold').AsBoolean then
+               Font.Style := Font.Style + [fsBold];
+            if SubMenuQuery.FieldByName('FontItalic').AsBoolean then
+               Font.Style := Font.Style + [fsItalic];
+            if SubMenuQuery.FieldByName('FontUnderline').AsBoolean then
+               Font.Style := Font.Style + [fsUnderline];
+            if SubMenuQuery.FieldByName('FontStrikeout').AsBoolean then
+               Font.Style := Font.Style + [fsStrikeout];
+           end
+          else
+           begin
+            Caption := CopyDescription(SubMenuQuery.FieldByName('Description2').AsString);
+            Color := SubMenuQuery.FieldByName('ButtonColor1').AsInteger;
+            Font.Size := SubMenuQuery.FieldByName('FontSize1').AsInteger;;
+            Font.Name := SubMenuQuery.FieldByName('FontName1').AsString;
+            Font.Color := SubMenuQuery.FieldByName('FontColor1').AsInteger;
+            Font.Style := [];
+            if SubMenuQuery.FieldByName('FontBold1').AsBoolean then
+               Font.Style := Font.Style + [fsBold];
+            if SubMenuQuery.FieldByName('FontItalic1').AsBoolean then
+               Font.Style := Font.Style + [fsItalic];
+            if SubMenuQuery.FieldByName('FontUnderline1').AsBoolean then
+               Font.Style := Font.Style + [fsUnderline];
+            if SubMenuQuery.FieldByName('FontStrikeout1').AsBoolean then
+               Font.Style := Font.Style + [fsStrikeout];
+           end;
+        SubMenuQuery.Next;
+       end
+      else
+       begin
+        Caption := '';
+        Color := $00DDF9E8;
+        Visible := True;
+       end;
+  end;
+end;
+
+function TSubMenuForm.OpenUnChoiceItemQuery(SQLStr: string): boolean;
+begin
+ Screen.Cursor := crHourGlass;
+ with UnChoiceItemQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+   if RecordCount = 0 then
+      Result := False
+     else
+      Result := True;
+  end;
+end;
+
+procedure TSubMenuForm.AddUnChoiceItemToTableOrder;
+var
+ I, FirstRow, LastRow: integer;
+begin
+ Qty :='1.000';
+ with TableOrderForm do
+   with UnChoiceItemQuery do
+    if Active and (RecordCount > 0) then
+       begin
+        I := FindLastRow;
+        FirstRow := I;
+        while Not EOF do
+         begin
+          if Langurage or (FieldByName('Description2').AsString = '') then
+             StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+            else
+             StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+          StringGrid.Cells[2, I] := '1.000';
+          //StringGrid.Cells[2, I] := Qty;
+          StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+          StringGrid.Cells[8, I] := FieldByName('SubMenuCode').AsString;
+          if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+           StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+          else
+           StringGrid.Cells[5, I] := '';
+          StringGrid.Cells[7, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+          if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+             SecondScreenDescription[I] := FieldByName('Description2').AsString
+            else
+             SecondScreenDescription[I] := FieldByName('Description1').AsString;
+             OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+          if FieldByName('Instruction').AsBoolean then
+             Instruction[I] := 1
+            else
+             Instruction[I] := 0;
+          DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+          OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+          PriceSelect[I] := 0;
+          EditFlag[I] := True;
+          PrintFlag[I] := False;
+          VoidFlag[I] := False;
+          OrderInstruction[I] := False;
+          SentToKitchen[I] := False;
+          CheckListPrinted[I] := False;
+          PaidQty[I] := 0;
+          VoidReason[I] := '';
+          OrderOperator[I] := sUserName;
+          SetDescription(I);
+          I := I + 1;
+          Next;
+         end;
+       LastRow := I;
+       ConvertLangurage(FirstRow, LastRow);
+       CalcAmount;
+      end;
+end;
+
+procedure TSubMenuForm.AddUnChoiceItemToQuickService;
+var
+ I, FirstRow, LastRow: integer;
+begin
+ with PointOfSalesForm do
+   with UnChoiceItemQuery do
+    if Active and (RecordCount > 0) then
+       begin
+        I := FindLastRow;
+        FirstRow := I;
+        while Not EOF do
+         begin
+          if Langurage or (FieldByName('Description2').AsString = '') then
+             StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+            else
+             StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+          StringGrid.Cells[2, I] := '1.000';
+          //StringGrid.Cells[2, I] := Qty;
+          StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+          if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+           StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+          else
+           StringGrid.Cells[5, I] := '';
+          StringGrid.Cells[6, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+          StringGrid.Cells[7, I] := FieldByName('SubMenuCode').AsString;
+          if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+             SecondScreenDescription[I] := FieldByName('Description2').AsString
+            else
+             SecondScreenDescription[I] := FieldByName('Description1').AsString;
+             OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+          if FieldByName('Instruction').AsBoolean then
+             Instruction[I] := 1
+            else
+             Instruction[I] := 0;
+          DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+          OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+          PriceSelect[I] := 0;
+          OrderInstruction[I] := False;
+          CheckListPrinted[I] := False;
+          SetDescription(I);
+          I := I + 1;
+          Next;
+         end;
+       LastRow := I;
+       ConvertLangurage(FirstRow, LastRow);
+       CalcAmount;
+      end;
+end;
+
+procedure TSubMenuForm.AddUnChoiceItemToPhoneOrder;
+var
+ I, FirstRow, LastRow: integer;
+begin
+ with PhoneOrderForm do
+   with UnChoiceItemQuery do
+    if Active and (RecordCount > 0) then
+       begin
+        I := FindLastRow;
+        FirstRow := I;
+        while Not EOF do
+         begin
+          if Langurage or (FieldByName('Description2').AsString = '') then
+             StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+            else
+             StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+          StringGrid.Cells[2, I] := '1.00';
+          StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+          if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+           StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+          else
+           StringGrid.Cells[5, I] := '';
+          StringGrid.Cells[6, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+          StringGrid.Cells[7, I] := FieldByName('SubMenuCode').AsString;
+          if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+             SecondScreenDescription[I] := FieldByName('Description2').AsString
+            else
+             SecondScreenDescription[I] := FieldByName('Description1').AsString;
+          OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+          if FieldByName('Instruction').AsBoolean then
+             Instruction[I] := 1
+            else
+             Instruction[I] := 0;
+          DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+          OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+          PriceSelect[I] := 0;
+          EditFlag[I] := True;
+          PrintFlag[I] := False;
+          VoidFlag[I] := False;
+          OrderInstruction[I] := False;
+          SentToKitchen[I] := False;
+          CheckListPrinted[I] := False;
+          PaidQty[I] := 0;
+          VoidReason[I] := '';
+          OrderOperator[I] := sUserName;
+          SetDescription(I);
+          I := I + 1;
+          Next;
+         end;
+       LastRow := I;
+       ConvertLangurage(FirstRow, LastRow);
+       CalcAmount;
+      end;
+end;  
+
+{procedure TSubMenuForm.AddUnChoiceItemToBookDetail;
+var
+ I, FirstRow, LastRow: integer;
+begin
+ with BookDetailForm do
+   with UnChoiceItemQuery do
+    if Active and (RecordCount > 0) then
+       begin
+        I := FindLastRow;
+        FirstRow := I;
+        while Not EOF do
+         begin
+          if Langurage or (FieldByName('Description2').AsString = '') then
+             StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+            else
+             StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+          StringGrid.Cells[2, I] := '1.00';
+          StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+          StringGrid.Cells[5, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+          StringGrid.Cells[6, I] := FieldByName('SubMenuCode').AsString;
+          OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+          if FieldByName('Instruction').AsBoolean then
+             Instruction[I] := 1
+            else
+             Instruction[I] := 0;
+          PriceSelect[I] := 0;
+          OrderInstruction[I] := False;
+          SetDescription(I);
+          I := I + 1;
+          Next;
+         end;
+       LastRow := I;
+       ConvertLangurage(FirstRow, LastRow);
+       CalcAmount;
+      end;
+end;     }
+
+procedure TSubMenuForm.CollectUnChoiceItem(ItemCode: string);
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select SubMenuCode, Description1, Description2, SalesPrice, ' +
+           'SubMenuLinkDetail.Instruction, TaxRate, AllowDiscount, OpenPrice ' +
+           'From MenuItem, SubMenuLinkDetail ' +
+           'Where MenuItem.ItemCode=SubMenuLinkDEtail.SubMenuCode and ' +
+           'ChoiceItem = 0 and SubMenuLinkDetail.ItemCode=' + Chr(39) + ItemCode + Chr(39) +
+           'Order By SubMenuCode';
+ OpenUnChoiceItemQuery(SQLStr);
+ case OwnerNumber of
+  sTableOrder: AddUnChoiceItemToTableOrder;
+  sQuickSale:  AddUnChoiceItemToQuickService;
+  sPhoneOrder: AddUnChoiceItemToPhoneOrder;
+  //sBookDetail: AddUnChoiceItemToBookDetail;
+ end;
+end;
+
+procedure TSubMenuForm.AddSubMenuItemToTableOrder;
+var
+ I: integer;
+begin
+ 
+ with TableOrderForm do
+  with SubMenuQuery do
+   begin
+    if StringGrid.Cells[1, CurrentRow] <> '' then CurrentRow := FindLastRow;
+    if (CurrentRow <= 500) and (StringGrid.Cells[1, CurrentRow] = '') then
+        begin
+         StringGrid.Row := CurrentRow;
+         CurrentCol := 1;
+         StringGrid.Col := 1;
+         I := CurrentRow;
+         if Langurage or (FieldByName('Description2').AsString = '') then
+            StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+           else
+            StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+         //StringGrid.Cells[2, I] := '1.00';
+         StringGrid.Cells[2, I] := Qty;
+         StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+         StringGrid.Cells[4, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat * StrToFloat(Qty)]);
+         if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+            StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+           else
+            StringGrid.Cells[5, I] := '';
+        StringGrid.Cells[7, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+        StringGrid.Cells[8, I] := FieldByName('ItemCode').AsString;
+        if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+           SecondScreenDescription[I] := FieldByName('Description2').AsString
+          else
+           SecondScreenDescription[I] := FieldByName('Description1').AsString;
+        OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+        if FieldByName('Instruction').AsBoolean then
+           Instruction[I] := 1
+          else
+           Instruction[I] := 0;
+        if FieldByName('Scalable').AsString = 'True' then
+          WeightButtonClick(self);
+        DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+        OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+        PriceSelect[I] := 0;
+        EditFlag[I] := True;
+        PrintFlag[I] := False;
+        VoidFlag[I] := False;
+        OrderInstruction[I] := False;
+        SentToKitchen[I] := False;
+        CheckListPrinted[I] := False;
+        PaidQty[I] := 0;
+        VoidReason[I] := '';
+        OrderOperator[I] := sUserName;
+        SetDescription(I);
+        ConvertLangurage(I, I);
+        CalcAmount;
+        MoveToNextCell;
+       end;
+   end;
+   Qty := '1.000';
+end;
+
+procedure TSubMenuForm.AddSubMenuItemToQuickService;
+var
+ I: integer;
+begin
+ with PointOfSalesForm do
+  with SubMenuQuery do
+   begin
+    if StringGrid.Cells[1, CurrentRow] <> '' then CurrentRow := FindLastRow;
+    if (CurrentRow <= 500) and (StringGrid.Cells[1, CurrentRow] = '') then
+       begin
+        StringGrid.Row := CurrentRow;
+        CurrentCol := 1;
+        StringGrid.Col := 1;
+        I := CurrentRow;
+        if Langurage or (FieldByName('Description2').AsString = '') then
+           StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+          else
+           StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+        //StringGrid.Cells[2, I] := '1.00';
+        StringGrid.Cells[2, I] := Qty;
+        StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+        //StringGrid.Cells[4, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat * StrToInt(Qty)]);
+        if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+           StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+          else
+           StringGrid.Cells[5, I] := '';
+        StringGrid.Cells[6, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+        StringGrid.Cells[7, I] := FieldByName('ItemCode').AsString;
+        if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+           SecondScreenDescription[I] := FieldByName('Description2').AsString
+          else
+           SecondScreenDescription[I] := FieldByName('Description1').AsString;
+        OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+        if FieldByName('Instruction').AsBoolean then
+           Instruction[I] := 1
+          else
+           Instruction[I] := 0;
+        if FieldByName('Scalable').AsString = 'True' then
+          WeightButtonClick(self);   
+        DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+        OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+        PriceSelect[I] := 0;
+        OrderInstruction[I] := False;
+        CheckListPrinted[I] := False;
+        SetDescription(I);
+        ConvertLangurage(I, I);
+        CalcAmount;
+        MoveToNextCell;
+
+       end;
+
+   end;
+   Qty := '1.000';
+end;
+
+procedure TSubMenuForm.AddSubMenuItemToPhoneOrder;
+var
+ I: integer;
+begin
+ with PhoneOrderForm do
+  with SubMenuQuery do
+   begin
+    if StringGrid.Cells[1, CurrentRow] <> '' then CurrentRow := FindLastRow;
+    if (CurrentRow <= 500) and (StringGrid.Cells[1, CurrentRow] = '') then
+        begin
+         StringGrid.Row := CurrentRow;
+         CurrentCol := 1;
+         StringGrid.Col := 1;
+         I := CurrentRow;
+         if Langurage or (FieldByName('Description2').AsString = '') then
+            StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+           else
+            StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+         //StringGrid.Cells[2, I] := '1.00';
+         StringGrid.Cells[2, I] := Qty;
+         StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+         if (DiscountFlag[I] or (ForceVIPDiscount and (sVIPNo > 0))) and (DiscountRate >= 0.01) then
+            StringGrid.Cells[5, I] := Format('%4.2f', [DiscountRate])
+           else
+            StringGrid.Cells[5, I] := '';
+        StringGrid.Cells[6, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+        StringGrid.Cells[7, I] := FieldByName('ItemCode').AsString;
+        if (SecondDisplayDescription = 1) and (FieldByName('Description2').AsString <> '') then
+           SecondScreenDescription[I] := FieldByName('Description2').AsString
+          else
+           SecondScreenDescription[I] := FieldByName('Description1').AsString;
+        OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+        if FieldByName('Instruction').AsBoolean then
+           Instruction[I] := 1
+          else
+           Instruction[I] := 0;
+        if FieldByName('Scalable').AsString = 'True' then
+          WeightButtonClick(self);      
+        DiscountFlag[I] := FieldByName('AllowDiscount').AsBoolean;
+        OriginalPrice[I] := FieldByName('SalesPrice').AsFloat;
+        PriceSelect[I] := 0;
+        EditFlag[I] := True;
+        PrintFlag[I] := False;
+        VoidFlag[I] := False;
+        OrderInstruction[I] := False;
+        SentToKitchen[I] := False;
+        CheckListPrinted[I] := False;
+        PaidQty[I] := 0;
+        VoidReason[I] := '';
+        OrderOperator[I] := sUserName;
+        SetDescription(I);
+        ConvertLangurage(I, I);
+        CalcAmount;
+        MoveToNextCell;
+       end;
+   end;
+end;
+
+procedure TSubMenuForm.AddSubMenuItemToBookDetail;
+var
+ I: integer;
+begin
+ with BookDetailForm do
+  with SubMenuQuery do
+   begin
+    if StringGrid.Cells[1, CurrentRow] <> '' then CurrentRow := FindLastRow;
+    if (CurrentRow <= 500) and (StringGrid.Cells[1, CurrentRow] = '') then
+        begin
+         StringGrid.Row := CurrentRow;
+         CurrentCol := 1;
+         StringGrid.Col := 1;
+         I := CurrentRow;
+         if Langurage or (FieldByName('Description2').AsString = '') then
+            StringGrid.Cells[1, I] := FieldByName('Description1').AsString
+           else
+            StringGrid.Cells[1, I] := FieldByName('Description2').AsString;
+         //StringGrid.Cells[2, I] := '1.00';
+         StringGrid.Cells[2, I] := Qty;
+         StringGrid.Cells[3, I] := Format('%4.2f', [FieldByName('SalesPrice').AsFloat]);
+         StringGrid.Cells[5, I] := Format('%4.2f', [FieldByName('TaxRate').AsFloat]);
+         StringGrid.Cells[6, I] := FieldByName('ItemCode').AsString;
+         OpenPrice[I] := FieldByName('OpenPrice').AsBoolean;
+         if FieldByName('Instruction').AsBoolean then
+            Instruction[I] := 1
+           else
+            Instruction[I] := 0;
+         PriceSelect[I] := 0;
+         OrderInstruction[I] := False;
+         SetDescription(I);
+         ConvertLangurage(I, I);
+         CalcAmount;
+         MoveToNextCell;
+        end;
+   end;
+end;
+
+
+procedure TSubMenuForm.AddSubMenuItem;
+begin
+ case OwnerNumber of
+  sTableOrder: AddSubMenuItemToTableOrder;
+  sQuickSale: AddSubMenuItemToQuickService;
+  sPhoneOrder: AddSubMenuItemToPhoneOrder;
+  sBookDetail: AddSubMenuItemToBookDetail;
+ end;
+end;
+
+procedure TSubMenuForm.SubMenuClick(Sender: TObject);
+var
+ Num: string;
+begin
+ with Sender As TPanelButton do
+  begin
+   Num := Copy(Name, 8, 2);
+   if Caption <> '' then ProcessSubMenuButtonTouch(StrToInt(Num));
+  end;
+end;
+
+procedure TSubMenuForm.SubMenuPriorButtonClick(Sender: TObject);
+begin
+ if CurrentSubMenuPage >= 2 then
+    begin
+     CurrentSubMenuPage := CurrentSubMenuPage - 1;
+     AssignSubMenuKeyboard;
+    end;
+end;
+
+procedure TSubMenuForm.SubMenuNextButtonClick(Sender: TObject);
+begin
+ if CurrentSubMenuPage * 28 < SubMenuQuery.RecordCount then
+    begin
+     CurrentSubMenuPage := CurrentSubMenuPage + 1;
+     AssignSubMenuKeyBoard;
+    end;
+end;
+
+procedure TSubMenuForm.CloseButtonClick(Sender: TObject);
+var
+ Temp: string;
+begin
+ {Temp := 'You are required to choice ' + Format('%1d ', [NumberOfChoice]) +
+         'Item(s) on this menu page.' + Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+         'Are you sure you want to close this page?';
+ if (NumberOfChoice = 0) or (ChoicedItemsCount = NumberOfChoice) or
+    (MessageBoxForm.MessagePro(Temp, sConfirmMsg) = mrYes) then
+    begin
+     SubMenuQuery.Close;
+     Close;
+    end;}
+ SubMenuQuery.Close;
+ Close;
+end;
+
+procedure TSubMenuForm.SubMenuMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+ case OwnerNumber of
+  sTableOrder: TableOrderForm.AutoLogoutTimeCounter := 0;
+  sQuickSale: PointOfSalesForm.AutoLogoutTimeCounter := 0;
+ end;
+end;
+
+procedure TSubMenuForm.SubMenuMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+ case OwnerNumber of
+  sTableOrder: TableOrderForm.AutoLogoutTimeCounter := 0;
+  sQuickSale: PointOfSalesForm.AutoLogoutTimeCounter := 0;
+ end;
+end;
+
+procedure TSubMenuForm.FormShow(Sender: TObject);
+begin
+ if Langurage or (MainItemDescription2 = '') then
+    MainItemDescriptionEdit.Caption := MainItemDescription1
+   else
+    MainItemDescriptionEdit.Caption := MainItemDescription2;
+ BackPanel.Width := 580;
+ BackPanel.Height := 761;
+ BackPanel.Left := 0;
+ BackPanel.Top := 0;
+ Width := 580;
+ Height := 761;
+ Qty := '1.000';
+ Top := (Screen.Height - BackPanel.Height) div 2;
+
+ Left := 1024- BackPanel.Width + (Screen.Width - 1024) div 2 - 3;
+ //Left := (Screen.Width - 1024) div 2;
+ CollectUnChoiceItem(MainItemCode);
+ ChoicedItemsCount := 0;
+ OpenSubMenu(MainItemCode);
+ if SubMenuQuery.Active or (SubMenuQuery.RecordCount > 0) then
+    AssignSubMenuKeyBoard;
+end;
+
+procedure TSubMenuForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ Action := caFree;
+end;
+
+procedure TSubMenuForm.ProcessSubMenuButtonTouch(Position: integer);
+var
+ ItemCode, ItemDescription1, ItemDescription2,ScalableItem: string;
+ SubMenuForm: TSubMenuForm;
+ DirectLinkSubMenu: boolean;
+ SubMenuNumberOfChoice: integer;
+
+begin
+ SubMenuQuery.First;
+ SubMenuQuery.MoveBy((CurrentSubMenuPage - 1) * 28 + Position - 1);
+ ItemCode := SubMenuQuery.FieldByName('ItemCode').AsString;
+ ScalableItem := SubMenuQuery.FieldByName('Scalable').AsString;
+ ChoicedItemsCount := ChoicedItemsCount + 1;
+ if Not SubMenuQuery.FieldByName('SubCategory').AsBoolean then
+    AddSubMenuItem;
+ if DataForm.CheckSubMenuLink(ItemCode, ItemDescription1, ItemDescription2, SubMenuNumberOfChoice, DirectLinkSubMenu) then
+    begin
+     Application.CreateForm(TSubMenuForm, SubMenuForm);
+     SubMenuForm.MainItemCode := ItemCode;
+     SubMenuForm.MainItemDescription1 := ItemDescription1;
+     SubMenuForm.MainItemDescription2 := ItemDescription2;
+     SubMenuForm.Langurage := Langurage;
+     SubMenuForm.NumberOfChoice := SubMenuNumberOfChoice;
+     SubMenuForm.OwnerNumber := OwnerNumber;
+     if DirectLinkSubMenu then
+        SubMenuForm.ProcessDirectLinkSubMenu
+       else
+        SubMenuForm.ShowModal;
+     SubMenuForm.Free;
+    end;
+ if (NumberOfChoice <> 0) and (ChoicedItemsCount = NumberOfChoice) then
+    Close;
+end;
+
+procedure TSubMenuForm.ProcessDirectLinkSubMenu;
+var
+ ItemCode, MainItemDescription1, MainItemDescription2: string;
+ SubMenuForm: TSubMenuForm;
+ SubMenuNumberOfChoice: Integer;
+ DirectLinkSubMenu: boolean;
+begin
+ CollectUnChoiceItem(MainItemCode);
+ ChoicedItemsCount := 0;
+ OpenSubMenu(MainItemCode);
+ if SubMenuQuery.Active or (SubMenuQuery.RecordCount > 0) then
+    with SubMenuQuery do
+     begin
+      First;
+      while Not EOF do
+       begin
+        ItemCode := FieldByName('ItemCode').AsString;
+        if DataForm.CheckSubMenuLink(ItemCode, MainItemDescription1, MainItemDescription2, SubMenuNumberOfChoice, DirectLinkSubMenu) then
+           begin
+            ChoicedItemsCount := ChoicedItemsCount + 1;
+            Application.CreateForm(TSubMenuForm, SubMenuForm);
+            SubMenuForm.MainItemCode := ItemCode;
+            SubMenuForm.MainItemDescription1 := MainItemDescription1;
+            SubMenuForm.MainItemDescription2 := MainItemDescription2;
+            SubMenuForm.Langurage := Langurage;
+            SubMenuForm.NumberOfChoice := SubMenuNumberOfChoice;
+            SubMenuForm.OwnerNumber := OwnerNumber;
+            if DirectLinkSubMenu then
+               SubMenuForm.ProcessDirectLinkSubMenu
+              else
+               SubMenuForm.ShowModal;
+            SubMenuForm.Free;
+           end;
+        Next;
+       end;
+     end;
+ SubMenuQuery.Close;
+ Close;
+end;
+
+
+procedure TSubMenuForm.Num1Click(Sender: TObject);
+begin
+ Qty := '1.000';
+ QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num2Click(Sender: TObject);
+begin
+  Qty := '2.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num3Click(Sender: TObject);
+begin
+  Qty := '3.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num4Click(Sender: TObject);
+begin
+  Qty := '4.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num5Click(Sender: TObject);
+begin
+  Qty := '5.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num6Click(Sender: TObject);
+begin
+  Qty := '6.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num7Click(Sender: TObject);
+begin
+  Qty := '7.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num8Click(Sender: TObject);
+begin
+  Qty := '8.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+procedure TSubMenuForm.Num9Click(Sender: TObject);
+begin
+  Qty := '9.000';
+  QtyLb.Caption := 'Qty: ' + Qty;
+end;
+
+
+end.
+

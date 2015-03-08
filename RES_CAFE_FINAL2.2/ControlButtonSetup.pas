@@ -1,0 +1,609 @@
+unit ControlButtonSetup;
+
+interface
+
+{ $H+}
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, Buttons, ExtCtrls, Mask, DBCtrls, DB, Grids, DBGrids, UtilUnit,
+  ADODB, Variants, Menus, bsSkinCtrls, PanelButton, XiButton,
+  BusinessSkinForm;
+
+type
+  TControlButtonSetupForm = class(TForm)
+    DBGrid: TDBGrid;
+    DataSource: TDataSource;
+    Query: TADOQuery;
+    MenuPanel: TbsSkinPanel;
+    BackPanel: TbsSkinPanel;
+    DBGridPanel: TbsSkinPanel;
+    EditButton: TXiButton;
+    ExitButton: TXiButton;
+    Button1: TXiButton;
+    Button2: TXiButton;
+    Button3: TXiButton;
+    Button4: TXiButton;
+    Button5: TXiButton;
+    Button6: TXiButton;
+    Button7: TXiButton;
+    Button8: TXiButton;
+    Button9: TXiButton;
+    Button10: TXiButton;
+    Button11: TXiButton;
+    Button12: TXiButton;
+    Button13: TXiButton;
+    Button14: TXiButton;
+    Button15: TXiButton;
+    Button16: TXiButton;
+    Button17: TXiButton;
+    Button20: TXiButton;
+    Button18: TXiButton;
+    Button19: TXiButton;
+    Button21: TXiButton;
+    Button22: TXiButton;
+    Button23: TXiButton;
+    Button24: TXiButton;
+    QueryButtonName: TWideStringField;
+    QueryPosition: TIntegerField;
+    QueryButtonSize: TIntegerField;
+    QueryButtonColor: TIntegerField;
+    QueryCaption: TWideStringField;
+    QueryFontName: TWideStringField;
+    QueryFontSize: TIntegerField;
+    QueryFontBold: TBooleanField;
+    QueryFontItalic: TBooleanField;
+    QueryFontUnderline: TBooleanField;
+    QueryFontStrikeout: TBooleanField;
+    QueryKind: TIntegerField;
+    bsBusinessSkinForm: TbsBusinessSkinForm;
+    QueryDisable: TBooleanField;
+    QueryButtonStatus: TStringField;
+    QueryButtonLayout: TStringField;
+    ButtonKindComboBox: TComboBox;
+    Button25: TXiButton;
+    Button26: TXiButton;
+    Button27: TXiButton;
+    Button28: TXiButton;
+    QueryEvent: TIntegerField;
+    TableOrderControlButtonPanel: TbsSkinPanel;
+    QueryCanRelocate: TBooleanField;
+    TableOrderEditButtonPanel: TbsSkinPanel;
+    LangurageButton1: TXiButton;
+    SplitLineButton1: TXiButton;
+    ZoomButton1: TXiButton;
+    MinimumChargeButton1: TXiButton;
+    PhoneOrderButtonPanel: TbsSkinPanel;
+    LangurageButton3: TXiButton;
+    SplitLineButton3: TXiButton;
+    ZoomButton3: TXiButton;
+    QuickServiceButtonPanel: TbsSkinPanel;
+    LangurageButton2: TXiButton;
+    ZoomButton2: TXiButton;
+    HoldOrderButton2: TXiButton;
+    RecallOrderButton2: TXiButton;
+    FixedButtonQuery: TADOQuery;
+    procedure OpenQuery;
+    procedure OpenFixedButtonQuery;
+    procedure ButtonClick(Sender: TObject);
+    procedure InitButtons;
+    procedure AssignButtons;
+    procedure AssignFixedButton;
+    procedure ExitButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure EditButtonClick(Sender: TObject);
+    procedure DBGridDblClick(Sender: TObject);
+    procedure ButtonMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    function  CheckSeletedObjectStatus(var ButtonName: string): boolean;
+    function  CheckReleaseObjectStatus(var NewPosition: integer): boolean;
+    function  MoveToNewPosition(ButtonName: string; NewPosition: integer): boolean;
+    procedure ProcessButtonMove;
+    procedure ButtonDblClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure QueryCalcFields(DataSet: TDataSet);
+    procedure ControlButtonSetupPro;
+    procedure ButtonKindComboBoxChange(Sender: TObject);
+    procedure FixedButton3DblClick(Sender: TObject);
+  private { Private declarations }
+    StartMoveMouse: boolean;
+    SelectedObjectName, ReleaseObjectName: string;
+    Buttons: array [1..28] of string;
+  public
+    { Public declarations }
+  end;
+
+var
+ ControlButtonSetupForm: TControlButtonSetupForm;
+
+implementation
+
+uses DataUnit, MainMenu, MessageBox, ControlButtonEdit, FixedButtonEdit;
+
+{$R *.DFM}
+
+procedure TControlButtonSetupForm.OpenQuery;
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select * From ButtonsTable ' +
+           'Where Kind = ' + IntToStr(ButtonKindComboBox.ItemIndex + 1) +
+           ' and CanRelocate <> 0 Order By ButtonName';
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TControlButtonSetupForm.OpenFixedButtonQuery;
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select * From ButtonsTable ' +
+           'Where Kind = ' + IntToStr(ButtonKindComboBox.ItemIndex + 1) +
+           ' and CanRelocate = 0 Order By ButtonName';
+ Screen.Cursor := crHourGlass;
+ with FixedButtonQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TControlButtonSetupForm.QueryCalcFields(DataSet: TDataSet);
+begin
+ with Query do
+  begin
+   case Query.FieldByName('ButtonSize').AsInteger of
+    sButtonNormalSize: FieldByName('ButtonLayout').AsString := 'Normal';
+    sButtonDoubleWidth: FieldByName('ButtonLayout').AsString := 'Double Wide';
+    sButtonDoubleHeight: FieldByName('ButtonLayout').AsString := 'Double High';
+    sButtonDoubleWidthDoubleHeight: FieldByName('ButtonLayout').AsString := 'Double Wide and Double High';
+   end;
+   if FieldByName('Disable').AsBoolean then
+     FieldByName('ButtonStatus').AsString := 'Disabled'
+    else
+     FieldByName('ButtonStatus').AsString := 'Enabled';
+  end;
+end;
+
+procedure TControlButtonSetupForm.InitButtons;
+var
+ I, ButtonColumn, ButtonWidth, ButtonHeight, MaxButtons, ButtonCount, L, T: integer;
+ ButtonName: string;
+begin
+ //TableOrderControlButtonPanel.Left := 575;
+ //TableOrderEditButtonPanel.Left := 575;
+ //QuickServiceButtonPanel.Left := 575;
+ //PhoneOrderButtonPanel.Left := 575;
+ //TableOrderControlButtonPanel.Top := 6;
+ //TableOrderEditButtonPanel.Top := 6;
+ //QuickServiceButtonPanel.Top := 6;
+ //PhoneOrderButtonPanel.Top := 6;
+
+ case ButtonKindComboBox.ItemIndex of
+  0: begin
+      ButtonWidth := 85;
+      ButtonColumn := 5;
+      MaxButtons := 20;
+      TableOrderControlButtonPanel.Visible := True;
+      TableOrderEditButtonPanel.Visible := False;
+      QuickServiceButtonPanel.Visible := False;
+      PhoneOrderButtonPanel.Visible := False;
+     end;
+  1: begin
+      ButtonWidth := 85;
+      ButtonColumn := 5;
+      MaxButtons := 20;
+      TableOrderControlButtonPanel.Visible := False;
+      TableOrderEditButtonPanel.Visible := True;
+      QuickServiceButtonPanel.Visible := False;
+      PhoneOrderButtonPanel.Visible := False;
+     end;
+  2: begin
+      ButtonWidth := 85;
+      ButtonColumn := 5;
+      MaxButtons := 20;
+      TableOrderControlButtonPanel.Visible := False;
+      TableOrderEditButtonPanel.Visible := False;
+      QuickServiceButtonPanel.Visible := True;
+      PhoneOrderButtonPanel.Visible := False;
+     end;
+  else
+     begin
+      ButtonWidth := 85;
+      ButtonColumn := 5;
+      MaxButtons := 20;
+      TableOrderControlButtonPanel.Visible := False;
+      TableOrderEditButtonPanel.Visible := False;
+      QuickServiceButtonPanel.Visible := False;
+      PhoneOrderButtonPanel.Visible := True;
+     end;
+ end;
+ ButtonHeight := 55;
+ L := 7; T := 7; ButtonCount := 1;
+ for I := 1 to 20 do
+  begin
+   Buttons[I] := '';
+   ButtonName := 'Button' + IntToStr(I);
+   with TXiButton(FindComponent(ButtonName)) do
+    begin
+     Ctl3D := False;
+     ColorScheme := csSilver;
+     Height := ButtonHeight;
+     Width := ButtonWidth;
+     Font.Name := 'MS Sans Serif';
+     Font.Size := 8;
+     Font.Style := [];
+     Caption := IntToStr(I);
+     Left := L; Top := T;
+     Visible := I <= MaxButtons;
+     SendToBack;
+    end;
+   ButtonCount := ButtonCount + 1;
+   if ButtonCount > ButtonColumn then
+      begin
+       L := 7;
+       T := T + ButtonHeight + 1;
+       ButtonCount := 1;
+      end
+     else
+      L := L + ButtonWidth + 1;
+  end;
+end;   
+
+procedure TControlButtonSetupForm.AssignButtons;
+var
+ ButtonName: string;
+ Position, ButtonWidth, ButtonHeight: integer;
+begin
+ if ButtonKindComboBox.ItemIndex = 1 then
+    ButtonWidth := 85
+   else
+    ButtonWidth := 85;
+ ButtonHeight := 55;
+ if Query.Active and (Query.RecordCount > 0) then
+    begin
+     Query.DisableControls;
+     Query.First;
+     while Not Query.EOF do
+      begin
+       if Not Query.FieldByName('Disable').AsBoolean then
+          begin
+           Position := Query.FieldByName('Position').AsInteger;
+           ButtonName := 'Button' + IntToStr(Position);
+           Buttons[Position] := Query.FieldByName('ButtonName').AsString;
+           with TXiButton(FindComponent(ButtonName)) do
+            begin
+             Ctl3D := True;
+             case Query.FieldByName('ButtonColor').AsInteger of
+              bcNeoDesert: ColorScheme := csNeoDesert;
+              bcNeoSky:    ColorScheme := csNeoSky;
+              bcNeoGrass:  ColorScheme := csNeoGrass;
+              bcNeoSilver: ColorScheme := csNeoSilver;
+              bcNeoRose:   ColorScheme := csNeoRose;
+              bcNeoSun:    ColorScheme := csNeoSun;
+              bcDesert:    ColorScheme := csDesert;
+              bcGrass:     ColorScheme := csGrass;
+              bcSky:       ColorScheme := csSky;
+              bcSun:       ColorScheme := csSun;
+              bcRose:      ColorScheme := csRose;
+              bcSilver:    ColorScheme := csSilver;
+             end;
+             {case Query.FieldByName('ButtonColor').AsInteger of
+              bcNeoDesert: ColorScheme := csWhite;
+              bcNeoSky:    ColorScheme := csWhite;
+              bcNeoGrass:  ColorScheme := csWhite;
+              bcNeoSilver: ColorScheme := csWhite;
+              bcNeoRose:   ColorScheme := csWhite;
+              bcNeoSun:    ColorScheme := csWhite;
+              bcDesert:    ColorScheme := csWhite;
+              bcGrass:     ColorScheme := csWhite;
+              bcSky:       ColorScheme := csWhite;
+              bcSun:       ColorScheme := csWhite;
+              bcRose:      ColorScheme := csWhite;
+              bcSilver:    ColorScheme := csWhite;
+             end;}
+             Caption := Query.FieldByName('Caption').AsString;
+             Font.Name := Query.FieldByName('FontName').AsString;
+             Font.Size := Query.FieldByName('FontSize').AsInteger;
+             Font.Color := clBlack;
+             Font.Style := [];
+             if Query.FieldByName('FontBold').AsBoolean then Font.Style := Font.Style + [fsBold];
+             if Query.FieldByName('FontItalic').AsBoolean then Font.Style := Font.Style + [fsItalic];
+             if Query.FieldByName('FontUnderline').AsBoolean then Font.Style := Font.Style + [fsUnderline];
+             if Query.FieldByName('FontStrikeout').AsBoolean then Font.Style := Font.Style + [fsStrikeout];
+             case Query.FieldByName('ButtonSize').AsInteger of
+              sButtonNormalSize: begin Height := ButtonHeight; Width := ButtonWidth; end;
+              sButtonDoubleWidth: begin Height := ButtonHeight; Width := ButtonWidth * 2 + 1; end;
+              sButtonDoubleHeight: begin Height := ButtonHeight * 2 + 1; Width := ButtonWidth end;
+              sButtonDoubleWidthDoubleHeight: begin Height := ButtonHeight * 2 + 1; Width := ButtonWidth * 2 + 1 end;
+             end;
+             BringToFront;
+            end;
+          end;
+       Query.Next;
+      end;
+     Query.First;
+     Query.EnableControls;
+    end;
+end;
+
+procedure TControlButtonSetupForm.AssignFixedButton;
+var
+ ButtonName: string;
+begin
+ if ButtonKindComboBox.ItemIndex > 0 then
+    begin
+     OpenFixedButtonQuery;
+     FixedButtonQuery.First;
+     while Not FixedButtonQuery.EOF do
+      begin
+       ButtonName := FixedButtonQuery.FieldByName('ButtonName').AsString + IntToStr(ButtonKindComboBox.ItemIndex);
+       with TXiButton(FindComponent(ButtonName)) do
+        begin
+         case FixedButtonQuery.FieldByName('ButtonColor').AsInteger of
+          bcNeoDesert: ColorScheme := csNeoDesert;
+          bcNeoSky:    ColorScheme := csNeoSky;
+          bcNeoGrass:  ColorScheme := csNeoGrass;
+          bcNeoSilver: ColorScheme := csNeoSilver;
+          bcNeoRose:   ColorScheme := csNeoRose;
+          bcNeoSun:    ColorScheme := csNeoSun;
+          bcDesert:    ColorScheme := csDesert;
+          bcGrass:     ColorScheme := csGrass;
+          bcSky:       ColorScheme := csSky;
+          bcSun:       ColorScheme := csSun;
+          bcRose:      ColorScheme := csRose;
+          bcSilver:    ColorScheme := csSilver;
+         end;
+         Caption := FixedButtonQuery.FieldByName('Caption').AsString;
+         Font.Name := FixedButtonQuery.FieldByName('FontName').AsString;
+         Font.Size := FixedButtonQuery.FieldByName('FontSize').AsInteger;
+         Font.Color := clBlack;
+         Font.Style := [];
+         if FixedButtonQuery.FieldByName('FontBold').AsBoolean then Font.Style := Font.Style + [fsBold];
+         if FixedButtonQuery.FieldByName('FontItalic').AsBoolean then Font.Style := Font.Style + [fsItalic];
+         if FixedButtonQuery.FieldByName('FontUnderline').AsBoolean then Font.Style := Font.Style + [fsUnderline];
+         if FixedButtonQuery.FieldByName('FontStrikeout').AsBoolean then Font.Style := Font.Style + [fsStrikeout];
+        end;
+       FixedButtonQuery.Next;
+      end;
+    end;
+end;
+
+procedure TControlButtonSetupForm.ButtonClick(Sender: TObject);
+var
+ Num: string;
+begin
+ with Sender As TXiButton do
+  begin
+   Num := Copy(Name, 7, 2);
+   if Buttons[StrToInt(Num)] <> '' then Query.Locate('Position', Num, [loPartialKey]);
+  end;
+end;
+
+procedure TControlButtonSetupForm.ButtonDblClick(Sender: TObject);
+var
+ ButtonName: string;
+ ButtonKind, Position: Integer;
+begin
+ with Sender As TXiButton do
+  begin
+   Position := StrToInt(Copy(Name, 7, 2));
+   if Buttons[Position] <> '' then
+      with Query do
+       begin
+        Locate('ButtonName', Buttons[Position], [loPartialKey]);
+        ButtonName := FieldByName('ButtonName').AsString;
+        ButtonKind := FieldByName('Kind').AsInteger;
+        if ControlButtonEditForm.ControlButtonEditPro(ButtonName, ButtonKind) then
+           begin
+            OpenQuery;
+            InitButtons;
+            AssignButtons;
+            Locate('ButtonName', ButtonName, [loPartialKey]);
+          end;
+      end;
+  end;
+end;
+
+procedure TControlButtonSetupForm.ButtonKindComboBoxChange(Sender: TObject);
+begin
+ OpenQuery;
+ InitButtons;
+ AssignButtons;
+ AssignFixedButton;
+end;
+
+procedure TControlButtonSetupForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(27) then Close;
+end;
+
+procedure TControlButtonSetupForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ Query.Close;
+ FixedButtonQuery.Close;
+ Action := caFree;
+ ControlButtonSetupForm := NIL;
+end;
+
+procedure TControlButtonSetupForm.ExitButtonClick(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TControlButtonSetupForm.DBGridDblClick(Sender: TObject);
+begin
+ EditButtonClick(Sender);
+end;
+
+procedure TControlButtonSetupForm.EditButtonClick(Sender: TObject);
+var
+ ButtonName: string;
+ ButtonKind: Integer;
+begin
+ with Query do
+  if Active and (RecordCount > 0) then
+     begin
+      ButtonName := FieldByName('ButtonName').AsString;
+      ButtonKind := FieldByName('Kind').AsInteger;
+      if ControlButtonEditForm.ControlButtonEditPro(ButtonName, ButtonKind) then
+         begin
+          OpenQuery;
+          InitButtons;
+          AssignButtons;
+          Locate('ButtonName', ButtonName, [loPartialKey]);
+        end;
+    end;
+end;
+
+procedure TControlButtonSetupForm.FixedButton3DblClick(Sender: TObject);
+var
+ ButtonName: string;
+begin
+ if ButtonKindComboBox.ItemIndex > 0 then
+    begin
+     with Sender As TXiButton do
+     ButtonName := Copy(Name, 1, Length(Name) - 1);
+     if FixedButtonEditForm.ControlButtonEditPro(ButtonName, ButtonKindComboBox.ItemIndex + 1) then
+        AssignFixedButton;
+    end;
+end;
+
+function TControlButtonSetupForm.CheckSeletedObjectStatus(var ButtonName: string): boolean;
+var
+ Position: integer;
+begin
+ with TXiButton(FindComponent(SelectedObjectName)) do
+  begin
+   Position := StrToInt(Copy(Name, 7, 2));
+   if Buttons[Position] = '' then Result := False
+     else
+      begin
+       ButtonName := Buttons[Position];
+       Result := True;
+      end;
+  end;
+end;
+
+function TControlButtonSetupForm.CheckReleaseObjectStatus(var NewPosition: integer): boolean;
+var
+ Position: integer;
+begin
+ with TXiButton(FindComponent(ReleaseObjectName)) do
+  begin
+   Position := StrToInt(Copy(Name, 7, 2));
+   if Buttons[Position] <> '' then Result := False
+     else
+      begin
+       NewPosition := Position;
+       Result := True;
+      end;
+  end;
+end;
+
+function TControlButtonSetupForm.MoveToNewPosition(ButtonName: string; NewPosition: integer): boolean;
+var
+ SQLStr: string;
+ Flag: boolean;
+begin
+ SQLStr := 'Update ButtonsTable Set Position=' + IntToStr(NewPosition) +
+            ' Where ButtonName=' + Chr(39) + CheckQuotes(ButtonName) + Chr(39) +
+            ' and Kind=' + IntToStr(ButtonKindComboBox.ItemIndex + 1);
+ Flag := False;
+ if DataForm.BeginTransaction then
+    try
+     Flag := DataForm.ExecQueryPro(SQLStr);
+    finally
+     if Flag then
+        begin
+         DataForm.CommitTransaction;
+         OpenQuery;
+         InitButtons;
+         AssignButtons;
+         Query.Locate('ButtonName', ButtonName, [loPartialKey]);
+        end
+       else
+        DataForm.Rollback;
+    end;
+ Result := Flag;
+end;
+
+procedure TControlButtonSetupForm.ProcessButtonMove;
+var
+ ButtonName: string;
+ NewPosition: integer;
+begin
+ if (SelectedObjectName <> 'DBGrid') and (Copy(SelectedObjectName, 1, 6) <> 'Button') then Exit;
+ if (Copy(ReleaseObjectName, 1, 6) <> 'Button') then Exit;
+ if (SelectedObjectName = 'DBGrid') and (ReleaseObjectName = SelectedObjectName) then Exit;
+ if (Copy(SelectedObjectName, 1, 6) = 'Button') and (SelectedObjectName=ReleaseObjectName) then Exit;
+
+ if (Copy(SelectedObjectName, 1, 6) = 'Button') and (Copy(ReleaseObjectName, 1, 6) = 'Button') and
+    CheckSeletedObjectStatus(ButtonName) and CheckReleaseObjectStatus(NewPosition) then
+    MoveToNewPosition(ButtonName, NewPosition)
+   else
+    if (SelectedObjectName = 'DBGrid') and (Copy(ReleaseObjectName, 1, 6) = 'Button') and
+       CheckReleaseObjectStatus(NewPosition) then
+       begin
+        ButtonName := Query.FieldByName('ButtonName').AsString;
+        MoveToNewPosition(ButtonName, NewPosition)
+      end
+end;
+
+procedure TControlButtonSetupForm.ButtonMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+ if Shift =  [ssLeft] then
+    begin
+     if Not StartMoveMouse and Query.Active and (Query.RecordCount > 0) and
+        (X < DBGrid.Left + DBGrid.Width) and (Y < DBGrid.Top + DBGrid.Height) then
+        begin
+         StartMoveMouse := True;
+         Screen.Cursor := crDrag;
+         with Sender As TComponent do SelectedObjectName := Name;
+        end;
+    end
+   else
+    begin
+     Screen.Cursor := crDefault;
+     if StartMoveMouse then
+        begin
+         with Sender As TComponent do ReleaseObjectName := Name;
+         ProcessButtonMove;
+         StartMoveMouse := False;
+        end;
+    end;
+end;
+
+procedure TControlButtonSetupForm.FormShow(Sender: TObject);
+begin
+ OpenQuery;
+ InitButtons;
+ AssignButtons;
+ AssignFixedButton;
+end;
+
+procedure TControlButtonSetupForm.ControlButtonSetupPro;
+begin
+  Application.CreateForm(TControlButtonSetupForm,ControlButtonSetupForm);
+  ControlButtonSetupForm.ShowModal;
+  ControlButtonSetupForm.Free;
+end;
+
+end.

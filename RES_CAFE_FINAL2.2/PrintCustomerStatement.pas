@@ -1,0 +1,182 @@
+unit PrintCustomerStatement;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ppProd, ppClass, ppReport, DB, ppComm, ppRelatv, ppDB, ppDBPipe,
+  ADODB, ppRichTx, ppCtrls, ppStrtch, ppPrnabl, ppBands, ppCache, ppModule,
+  raCodMod, ppVar, ppRegion, ExtCtrls, ppViewr, ppEndUsr, ppMemo, ppTypes,
+  ppRptExp, ppDsgnDB, TXComp, Printers, ppTxPipe, ppDevice, ppFilDev;
+
+type
+  TPrintCustomerStatementForm = class(TForm)
+    Report: TppReport;
+    ppHeaderBand1: TppHeaderBand;
+    ppDBText1: TppDBText;
+    BusinessRegistName: TppLabel;
+    ppLabel2: TppLabel;
+    Telephone: TppDBText;
+    ppLabel3: TppLabel;
+    Fax: TppDBText;
+    ppLine1: TppLine;
+    ppDetailBand1: TppDetailBand;
+    OrderDate: TppDBText;
+    ppFooterBand: TppFooterBand;
+    ppLine5: TppLine;
+    CompanyAddress: TppDBMemo;
+    ppLabel4: TppLabel;
+    ppLabel6: TppLabel;
+    PageNumber: TppSystemVariable;
+    ppCompanyDBPipeline: TppDBPipeline;
+    CompanyDataSource: TDataSource;
+    ExtraOptions: TExtraOptions;
+    ppLabel7: TppLabel;
+    ppLabel9: TppLabel;
+    PaymentLabel: TppLabel;
+    Description: TppDBText;
+    Balance: TppDBText;
+    Payment: TppDBText;
+    DateLabel: TppLabel;
+    TextPipeline: TppTextPipeline;
+    ppLabel1: TppLabel;
+    Sales: TppDBText;
+    ppShape1: TppShape;
+    ppLabel5: TppLabel;
+    CustomerNameLabel: TppLabel;
+    TelephoneLabel: TppLabel;
+    ppLabel8: TppLabel;
+    ppLabel10: TppLabel;
+    ppLabel11: TppLabel;
+    TotalDebitLabel: TppLabel;
+    TotalCreditLabel: TppLabel;
+    AvaliableLabel: TppLabel;
+    Query: TADOQuery;
+    ppSystemVariable1: TppSystemVariable;
+    AddressLabel: TppLabel;
+    procedure GetVIPDetail(VIPNo: integer);
+    procedure CreateDataFile(aFileName: String);
+    procedure ReportPreviewFormCreate(Sender: TObject);
+    procedure PrintCustomerStatementPro(VIPNo: integer);
+  private { Private declarations }
+    VIPNo: integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  PrintCustomerStatementForm: TPrintCustomerStatementForm;
+
+implementation
+
+uses DataUnit, CustomerStatement;
+
+{$R *.dfm}
+
+procedure TPrintCustomerStatementForm.GetVIPDetail(VIPNo: integer);
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select * From VIPTable Where VIPNo=' + IntToStr(VIPNo);
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   Active := True;
+  end;
+ Screen.Cursor := crDefault;
+end;
+
+procedure TPrintCustomerStatementForm.CreateDataFile(aFileName: String);
+var
+  lStringList: TStringList;
+  lcDelimiter: Char;
+  I: integer;
+  Temp: string;
+begin
+ lcDelimiter := ','; {comma delimiter }
+ lStringList := TStringList.Create;
+ lStringList.Clear;
+ with CustomerStatementForm.StringGrid do
+  for I := 1 to RowCount do
+   if Cells[1, I] <> '' then
+      begin
+       Temp := Cells[0, I] + lcDelimiter + Cells[1, I] + lcDelimiter +
+               Cells[2, I] + lcDelimiter + Cells[3, I] + lcDelimiter +
+               Cells[4, I];
+       lStringList.Add(Temp);
+      end;
+  {save the data to a text file}
+ lStringList.SaveToFile(aFileName);
+ lStringList.Free;
+end;
+
+procedure TPrintCustomerStatementForm.ReportPreviewFormCreate(Sender: TObject);
+var
+  lsFileName: String;
+begin
+ ppUnRegisterDevice(TppTextFileDevice);
+ ppUnRegisterDevice(TppReportTextFileDevice);
+ GetVIPDetail(VIPNo);
+ with Query do
+  begin
+   CustomerNameLabel.Caption := FieldByName('VIPName').AsString + '   (#' + Format('%8.8d', [VIPNo]) + ')';
+   TelephoneLabel.Caption := '';
+   if FieldByName('Telephone').AsString <> '' then
+      TelephoneLabel.Caption := 'Tel: ' + FieldByName('Telephone').AsString;
+   if FieldByName('Fax').AsString <> '' then
+      begin
+       if TelephoneLabel.Caption <> '' then TelephoneLabel.Caption := TelephoneLabel.Caption + '    ';
+       TelephoneLabel.Caption := TelephoneLabel.Caption + 'Fax: ' + FieldByName('Fax').AsString;
+      end;
+   if FieldByName('Mobile').AsString <> '' then
+      begin
+       if TelephoneLabel.Caption <> '' then TelephoneLabel.Caption := TelephoneLabel.Caption + '    ';
+       TelephoneLabel.Caption := TelephoneLabel.Caption + 'Mobile: ' + FieldByName('Mobile').AsString;
+      end;
+   AddressLabel.Caption := FieldByName('Number').AsString + ' ' +
+                           FieldByName('Address').AsString + ' '  +
+                           FieldByName('Suburb').AsString + ' ' +
+                           FieldByName('State').AsString + ' ' +
+                           FieldByName('PostCode').AsString;
+   Close;
+  end;
+ DateLabel.Caption := 'Date: ' + CustomerStatementForm.DateEdit1.Text + ' - ' +
+                      CustomerStatementForm.DateEdit2.Text;
+ TotalDebitLabel.Caption := CustomerStatementForm.TotalSalesEdit.Caption;
+ TotalCreditLabel.Caption := CustomerStatementForm.TotalPaymentEdit.Caption;
+ AvaliableLabel.Caption := CustomerStatementForm.BalanceEdit.Caption;
+ lsFileName := StartDir + 'Report.txt';
+ {create the data and save it to the file}
+ CreateDataFile(lsFileName);
+ {assign the file name }
+ TextPipeline.FileName := lsFileName;
+ {define the field's in order: FieldName, DataType, FieldLength (i.e. max length) }
+ TextPipeline.DefineField('OrderDate',   dtString, 15);
+ TextPipeline.DefineField('Description', dtString, 50);
+ TextPipeline.DefineField('Debit',       dtString, 15);
+ TextPipeline.DefineField('Credit',      dtString, 15);
+ TextPipeline.DefineField('Balance',     dtString, 15);
+ //BusinessRegistName.Caption := sRegistName + ' ' + DataForm.CompanyQuery.FieldByName('ABN').AsString;
+ Report.PreviewForm.BorderIcons := [];
+ Report.PreviewForm.BorderStyle := bsNone;
+ Report.PreviewForm.WindowState := wsMaximized;
+ Report.PreviewForm.FormStyle := fsNormal;
+ TppViewer(Report.PreviewForm.Viewer).ZoomSetting := zsPageWidth;
+end;
+
+procedure TPrintCustomerStatementForm.PrintCustomerStatementPro(VIPNo: integer);
+begin
+ Application.CreateForm(TPrintCustomerStatementForm, PrintCustomerStatementForm);
+ PrintCustomerStatementForm.VIPNo := VIPNo;
+ DataForm.OpenCompanyQuery;
+ PrintCustomerStatementForm.Report.Print;
+ DataForm.CompanyQuery.Close;
+ PrintCustomerStatementForm.Free;
+ DeleteFile(StartDir + 'Report.txt');
+end;
+
+end.

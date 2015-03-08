@@ -1,0 +1,686 @@
+object PrintReceivableReportFrom: TPrintReceivableReportFrom
+  Left = 445
+  Top = 180
+  Width = 262
+  Height = 197
+  BorderIcons = []
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  WindowState = wsMaximized
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Report: TppReport
+    AutoStop = False
+    DataPipeline = ppDBPipeline
+    PassSetting = psTwoPass
+    PrinterSetup.BinName = 'Default'
+    PrinterSetup.DocumentName = 'Report'
+    PrinterSetup.PaperName = 'A4 210 x 297 mm'
+    PrinterSetup.PrinterName = 'Default'
+    PrinterSetup.mmMarginBottom = 6350
+    PrinterSetup.mmMarginLeft = 6350
+    PrinterSetup.mmMarginRight = 6350
+    PrinterSetup.mmMarginTop = 6350
+    PrinterSetup.mmPaperHeight = 297128
+    PrinterSetup.mmPaperWidth = 210080
+    PrinterSetup.PaperSize = 9
+    Units = utScreenPixels
+    AllowPrintToFile = True
+    DeviceType = 'Screen'
+    OnPreviewFormCreate = ReportPreviewFormCreate
+    OutlineSettings.CreateNode = True
+    OutlineSettings.CreatePageNodes = True
+    OutlineSettings.Enabled = False
+    OutlineSettings.Visible = False
+    TextFileType = ftTab
+    TextSearchSettings.DefaultString = '<FindText>'
+    TextSearchSettings.Enabled = False
+    Left = 58
+    Top = 14
+    Version = '7.02'
+    mmColumnWidth = 0
+    DataPipelineName = 'ppDBPipeline'
+    object ppHeaderBand1: TppHeaderBand
+      PrintHeight = phDynamic
+      mmBottomOffset = 0
+      mmHeight = 35454
+      mmPrintPosition = 0
+      object CompanyTitle: TppDBText
+        UserName = 'CompanyTitle'
+        DataField = 'CompanyName'
+        DataPipeline = CompanyDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 18
+        Font.Style = [fsBold]
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'CompanyDBPipeline'
+        mmHeight = 7673
+        mmLeft = 10054
+        mmTop = 794
+        mmWidth = 121444
+        BandType = 0
+      end
+      object BusinessRegistName: TppLabel
+        UserName = 'BusinessRegistName'
+        Caption = 'A.B.N.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 3429
+        mmLeft = 10000
+        mmTop = 9525
+        mmWidth = 42333
+        BandType = 0
+      end
+      object ppLabel2: TppLabel
+        UserName = 'Label2'
+        Caption = 'Tel:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 3440
+        mmLeft = 53446
+        mmTop = 9525
+        mmWidth = 6085
+        BandType = 0
+      end
+      object Telephone: TppDBText
+        UserName = 'Telephone'
+        DataField = 'Telephone'
+        DataPipeline = CompanyDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'CompanyDBPipeline'
+        mmHeight = 3440
+        mmLeft = 60325
+        mmTop = 9525
+        mmWidth = 23813
+        BandType = 0
+      end
+      object ppLabel3: TppLabel
+        UserName = 'Label3'
+        Caption = 'Fax:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 3440
+        mmLeft = 85725
+        mmTop = 9525
+        mmWidth = 6085
+        BandType = 0
+      end
+      object Fax: TppDBText
+        UserName = 'Fax'
+        DataField = 'Fax'
+        DataPipeline = CompanyDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'CompanyDBPipeline'
+        mmHeight = 3440
+        mmLeft = 92604
+        mmTop = 9525
+        mmWidth = 23813
+        BandType = 0
+      end
+      object ppLabel13: TppLabel
+        UserName = 'Label13'
+        Caption = 'V.I.P. No.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 4498
+        mmLeft = 10054
+        mmTop = 29104
+        mmWidth = 18521
+        BandType = 0
+      end
+      object ppLabel14: TppLabel
+        UserName = 'Label14'
+        Caption = 'Customer Name'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 4233
+        mmLeft = 30692
+        mmTop = 29104
+        mmWidth = 77788
+        BandType = 0
+      end
+      object ppLine1: TppLine
+        UserName = 'Line1'
+        Weight = 0.750000000000000000
+        mmHeight = 1000
+        mmLeft = 10054
+        mmTop = 34131
+        mmWidth = 179917
+        BandType = 0
+      end
+      object CompanyAddress: TppDBMemo
+        UserName = 'CompanyAddress'
+        CharWrap = False
+        DataField = 'Address'
+        DataPipeline = CompanyDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = []
+        ParentDataPipeline = False
+        TextAlignment = taRightJustified
+        Transparent = True
+        DataPipelineName = 'CompanyDBPipeline'
+        mmHeight = 16140
+        mmLeft = 132027
+        mmTop = 529
+        mmWidth = 57944
+        BandType = 0
+        mmBottomOffset = 0
+        mmOverFlowOffset = 0
+        mmStopPosition = 0
+        mmLeading = 0
+      end
+      object ppLabel4: TppLabel
+        UserName = 'Label4'
+        AutoSize = False
+        Caption = 'Receivable Report'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 22
+        Font.Style = [fsBold]
+        TextAlignment = taCentered
+        Transparent = True
+        mmHeight = 9102
+        mmLeft = 10054
+        mmTop = 17727
+        mmWidth = 179917
+        BandType = 0
+      end
+      object ppLine5: TppLine
+        UserName = 'Line5'
+        Pen.Width = 2
+        Weight = 1.500000000000000000
+        mmHeight = 529
+        mmLeft = 10054
+        mmTop = 27781
+        mmWidth = 179917
+        BandType = 0
+      end
+      object ppLabel5: TppLabel
+        UserName = 'Label5'
+        AutoSize = False
+        Caption = 'Receivable'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        TextAlignment = taRightJustified
+        Transparent = True
+        mmHeight = 4498
+        mmLeft = 166159
+        mmTop = 29104
+        mmWidth = 23813
+        BandType = 0
+      end
+      object ppLabel1: TppLabel
+        UserName = 'Label1'
+        AutoSize = False
+        Caption = 'Telephone'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        Transparent = True
+        mmHeight = 4498
+        mmLeft = 111654
+        mmTop = 29104
+        mmWidth = 23813
+        BandType = 0
+      end
+      object ppLabel6: TppLabel
+        UserName = 'Label6'
+        AutoSize = False
+        Caption = 'Credit Limit'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = [fsBold]
+        TextAlignment = taRightJustified
+        Transparent = True
+        mmHeight = 4498
+        mmLeft = 139700
+        mmTop = 29104
+        mmWidth = 23813
+        BandType = 0
+      end
+    end
+    object ppDetailBand: TppDetailBand
+      PrintHeight = phDynamic
+      mmBottomOffset = 0
+      mmHeight = 5027
+      mmPrintPosition = 0
+      object VIPNO: TppDBText
+        UserName = 'VIPNO'
+        DataField = 'VIPNo'
+        DataPipeline = ppDBPipeline
+        DisplayFormat = '0######0'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = []
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 4233
+        mmLeft = 10054
+        mmTop = 529
+        mmWidth = 18521
+        BandType = 4
+      end
+      object VIPName: TppDBText
+        UserName = 'VIPName'
+        DataField = 'VIPName'
+        DataPipeline = ppDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = []
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 4233
+        mmLeft = 30692
+        mmTop = 529
+        mmWidth = 77788
+        BandType = 4
+      end
+      object CustomerTelephone: TppDBText
+        UserName = 'CustomerTelephone'
+        DataField = 'Telephone'
+        DataPipeline = ppDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = []
+        ParentDataPipeline = False
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 4233
+        mmLeft = 111654
+        mmTop = 529
+        mmWidth = 23813
+        BandType = 4
+      end
+      object CreditLimit: TppDBText
+        UserName = 'CreditLimit'
+        DataField = 'CreditLimit'
+        DataPipeline = ppDBPipeline
+        DisplayFormat = '$,0.#0'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 8
+        Font.Style = []
+        ParentDataPipeline = False
+        TextAlignment = taRightJustified
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 4498
+        mmLeft = 139700
+        mmTop = 529
+        mmWidth = 23813
+        BandType = 4
+      end
+      object TotalCredit: TppDBText
+        UserName = 'TotalCredit'
+        DataField = 'TotalCredit'
+        DataPipeline = ppDBPipeline
+        DisplayFormat = '$,0.#0'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 10
+        Font.Style = []
+        TextAlignment = taRightJustified
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 4233
+        mmLeft = 166688
+        mmTop = 265
+        mmWidth = 23548
+        BandType = 4
+      end
+    end
+    object ppFooterBand1: TppFooterBand
+      mmBottomOffset = 0
+      mmHeight = 5821
+      mmPrintPosition = 0
+      object PrintDate: TppSystemVariable
+        UserName = 'PrintDate'
+        DisplayFormat = 'dd/mm/yyyy'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = []
+        TextAlignment = taRightJustified
+        Transparent = True
+        mmHeight = 3598
+        mmLeft = 11906
+        mmTop = 1058
+        mmWidth = 16002
+        BandType = 8
+      end
+      object ppLine3: TppLine
+        UserName = 'Line3'
+        Weight = 0.750000000000000000
+        mmHeight = 529
+        mmLeft = 10054
+        mmTop = 0
+        mmWidth = 179917
+        BandType = 8
+      end
+      object ppSystemVariable1: TppSystemVariable
+        UserName = 'SystemVariable1'
+        VarType = vtPageSetDesc
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Arial'
+        Font.Size = 10
+        Font.Style = []
+        TextAlignment = taRightJustified
+        Transparent = True
+        mmHeight = 4022
+        mmLeft = 168583
+        mmTop = 794
+        mmWidth = 17949
+        BandType = 8
+      end
+    end
+    object ppSummaryBand1: TppSummaryBand
+      mmBottomOffset = 0
+      mmHeight = 5556
+      mmPrintPosition = 0
+      object Total: TppDBCalc
+        UserName = 'Total'
+        AutoSize = True
+        DataField = 'TotalCredit'
+        DataPipeline = ppDBPipeline
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = [fsBold, fsUnderline]
+        ParentDataPipeline = False
+        TextAlignment = taRightJustified
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline'
+        mmHeight = 3969
+        mmLeft = 164572
+        mmTop = 794
+        mmWidth = 25400
+        BandType = 7
+      end
+    end
+    object raCodeModule1: TraCodeModule
+      ProgramStream = {00}
+    end
+    object ppParameterList1: TppParameterList
+    end
+  end
+  object CompanyDataSource: TDataSource
+    DataSet = DataForm.CompanyQuery
+    Left = 26
+    Top = 58
+  end
+  object CompanyDBPipeline: TppDBPipeline
+    DataSource = CompanyDataSource
+    OpenDataSource = False
+    UserName = 'CompanyDBPipeline'
+    Left = 60
+    Top = 56
+    object CompanyDBPipelineppField1: TppField
+      FieldAlias = 'DefaultExemptTax'
+      FieldName = 'DefaultExemptTax'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 0
+    end
+    object CompanyDBPipelineppField2: TppField
+      FieldAlias = 'CompanyName'
+      FieldName = 'CompanyName'
+      FieldLength = 40
+      DisplayWidth = 40
+      Position = 1
+    end
+    object CompanyDBPipelineppField3: TppField
+      FieldAlias = 'Telephone'
+      FieldName = 'Telephone'
+      FieldLength = 15
+      DisplayWidth = 15
+      Position = 2
+    end
+    object CompanyDBPipelineppField4: TppField
+      FieldAlias = 'Fax'
+      FieldName = 'Fax'
+      FieldLength = 15
+      DisplayWidth = 15
+      Position = 3
+    end
+    object CompanyDBPipelineppField5: TppField
+      FieldAlias = 'ABN'
+      FieldName = 'ABN'
+      FieldLength = 15
+      DisplayWidth = 15
+      Position = 4
+    end
+    object CompanyDBPipelineppField6: TppField
+      FieldAlias = 'Address'
+      FieldName = 'Address'
+      FieldLength = 100
+      DisplayWidth = 100
+      Position = 5
+    end
+    object CompanyDBPipelineppField7: TppField
+      FieldAlias = 'Initial'
+      FieldName = 'Initial'
+      FieldLength = 1
+      DisplayWidth = 1
+      Position = 6
+    end
+    object CompanyDBPipelineppField8: TppField
+      FieldAlias = 'GSTStatus'
+      FieldName = 'GSTStatus'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 7
+    end
+    object CompanyDBPipelineppField9: TppField
+      FieldAlias = 'ExemptInit'
+      FieldName = 'ExemptInit'
+      FieldLength = 1
+      DisplayWidth = 1
+      Position = 8
+    end
+    object CompanyDBPipelineppField10: TppField
+      FieldAlias = 'POSInit'
+      FieldName = 'POSInit'
+      FieldLength = 1
+      DisplayWidth = 1
+      Position = 9
+    end
+    object CompanyDBPipelineppField11: TppField
+      FieldAlias = 'PrintDescription1'
+      FieldName = 'PrintDescription1'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 10
+    end
+    object CompanyDBPipelineppField12: TppField
+      FieldAlias = 'PrintDescription2'
+      FieldName = 'PrintDescription2'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 11
+    end
+    object CompanyDBPipelineppField13: TppField
+      FieldAlias = 'PrintDescription3'
+      FieldName = 'PrintDescription3'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 12
+    end
+    object CompanyDBPipelineppField14: TppField
+      FieldAlias = 'PrintDescription4'
+      FieldName = 'PrintDescription4'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 13
+    end
+    object CompanyDBPipelineppField15: TppField
+      FieldAlias = 'ReceiveConfirm'
+      FieldName = 'ReceiveConfirm'
+      FieldLength = 0
+      DataType = dtBoolean
+      DisplayWidth = 5
+      Position = 14
+    end
+    object CompanyDBPipelineppField16: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'DefaultSearch'
+      FieldName = 'DefaultSearch'
+      FieldLength = 0
+      DataType = dtInteger
+      DisplayWidth = 10
+      Position = 15
+    end
+    object CompanyDBPipelineppField17: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'DefaultLayByTerm'
+      FieldName = 'DefaultLayByTerm'
+      FieldLength = 0
+      DataType = dtInteger
+      DisplayWidth = 10
+      Position = 16
+    end
+    object CompanyDBPipelineppField18: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'LayByMinPayment'
+      FieldName = 'LayByMinPayment'
+      FieldLength = 0
+      DataType = dtDouble
+      DisplayWidth = 10
+      Position = 17
+    end
+    object CompanyDBPipelineppField19: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'DefaultGSTRate'
+      FieldName = 'DefaultGSTRate'
+      FieldLength = 0
+      DataType = dtDouble
+      DisplayWidth = 10
+      Position = 18
+    end
+  end
+  object ppDBPipeline: TppDBPipeline
+    DataSource = ReceivableReportForm.DataSource
+    UserName = 'DBPipeline'
+    Left = 18
+    Top = 14
+    object ppDBPipelineppField1: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'VIPNo'
+      FieldName = 'VIPNo'
+      FieldLength = 0
+      DataType = dtInteger
+      DisplayWidth = 0
+      Position = 0
+    end
+    object ppDBPipelineppField2: TppField
+      FieldAlias = 'VIPName'
+      FieldName = 'VIPName'
+      FieldLength = 30
+      DisplayWidth = 30
+      Position = 1
+    end
+    object ppDBPipelineppField3: TppField
+      FieldAlias = 'Telephone'
+      FieldName = 'Telephone'
+      FieldLength = 15
+      DisplayWidth = 15
+      Position = 2
+    end
+    object ppDBPipelineppField4: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'CreditLimit'
+      FieldName = 'CreditLimit'
+      FieldLength = 0
+      DataType = dtDouble
+      DisplayWidth = 10
+      Position = 3
+    end
+    object ppDBPipelineppField5: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'TotalCredit'
+      FieldName = 'TotalCredit'
+      FieldLength = 0
+      DataType = dtDouble
+      DisplayWidth = 10
+      Position = 4
+    end
+    object ppDBPipelineppField6: TppField
+      Alignment = taRightJustify
+      FieldAlias = 'AvailableCredit'
+      FieldName = 'AvailableCredit'
+      FieldLength = 0
+      DataType = dtDouble
+      DisplayWidth = 10
+      Position = 5
+    end
+  end
+end

@@ -1,0 +1,390 @@
+unit PaymentSetup;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  DB, DBTables, Grids, DBGrids, ExtCtrls, DBCtrls, StdCtrls, Buttons, Mask,
+  UtilUnit, ADODB, bsSkinCtrls, BusinessSkinForm, XiButton;
+
+type
+  TPaymentSetupForm = class(TForm)
+    DBGrid: TDBGrid;
+    DataSource: TDataSource;
+    Query: TADOQuery;
+    QueryPayment: TStringField;
+    QueryLinkToEFTPOS: TBooleanField;
+    QueryLinkToEFTPOSSTR: TStringField;
+    QueryShowOnSelectPanelStr: TStringField;
+    Label1: TLabel;
+    PaymentEdit: TEdit;
+    LinkToEFTPOSCheckBox: TCheckBox;
+    ShowOnSelectPanelCheckBox: TCheckBox;
+    Label2: TLabel;
+    BankChargeRateEdit: TEdit;
+    QuerySurchargeRate: TFloatField;
+    QueryShowOnList: TBooleanField;
+    QueryCode: TStringField;
+    Label3: TLabel;
+    CodeEdit: TEdit;
+    EFTPOSPaymentCheckBox: TCheckBox;
+    QueryEFTPOSPayment: TBooleanField;
+    QueryEFTPOSPaymentSTR: TStringField;
+    bsBusinessSkinForm: TbsBusinessSkinForm;
+    DBGridPanel: TbsSkinPanel;
+    EditPanel: TbsSkinPanel;
+    NewButton: TXiButton;
+    EditButton: TXiButton;
+    DeleteButton: TXiButton;
+    SaveButton: TXiButton;
+    CancelButton: TXiButton;
+    ExitButton: TXiButton;
+    procedure OpenQuery;
+    procedure SetReadStatus;
+    procedure SetEditStatus;
+    procedure NewButtonClick(Sender: TObject);
+    procedure EditButtonClick(Sender: TObject);
+    function  ProcessEditCode: Boolean;
+    function  ProcessNewCode: Boolean;
+    procedure SaveButtonClick(Sender: TObject);
+    function  SaveData: boolean;
+    procedure CancelButtonClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure DeleteButtonClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure DBGridDblClick(Sender: TObject);
+    procedure PaymentSetup;
+    procedure QueryCalcFields(DataSet: TDataSet);
+    procedure PaymentEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure BankChargeRateEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure LinkToEFTPOSCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ShowOnSelectPanelCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure BankChargeRateEditEnter(Sender: TObject);
+    procedure BankChargeRateEditExit(Sender: TObject);
+    procedure CodeEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EFTPOSPaymentCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private { Private declarations }
+   OpFlag: Integer;
+   OldCode: String;
+  public
+    { Public declarations }
+  end;
+
+var
+ PaymentSetupForm: TPaymentSetupForm;
+
+implementation
+
+uses DataUnit, MainMenu, MessageBox;
+
+{$R *.DFM}
+
+procedure TPaymentSetupForm.OpenQuery;
+begin
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add('Select * From Payment Order By Code');
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TPaymentSetupForm.QueryCalcFields(DataSet: TDataSet);
+begin
+ with Query do
+  begin
+   if FieldByName('LinkToEFTPOS').AsBoolean then
+      FieldByName('LinkToEFTPOSSTR').AsString := 'Y'
+     else
+      FieldByName('LinkToEFTPOSSTR').AsString := '';
+   if FieldByName('ShowOnList').AsBoolean then
+      FieldByName('ShowOnSelectPanelSTR').AsString := 'Y'
+     else
+      FieldByName('ShowOnSelectPanelSTR').AsString := '';
+   if FieldByName('EFTPOSPayment').AsBoolean then
+      FieldByName('EFTPOSPaymentSTR').AsString := 'Y'
+     else
+      FieldByName('EFTPOSPaymentSTR').AsString := '';
+  end;
+end;
+
+procedure TPaymentSetupForm.SetReadStatus;
+begin
+ DBGrid.Enabled := True;
+ EditPanel.Enabled := False;
+ NewButton.Enabled := True;
+ EditButton.Enabled := True;
+ DeleteButton.Enabled := True;
+ ExitButton.Enabled := True;
+ SaveButton.Enabled := False;
+ CancelButton.Enabled := False;
+ CodeEdit.Text := '';
+ PaymentEdit.Text := '';
+ BankChargeRateEdit.Text := Format('%6.2f', [0.0]);
+ LinkToEFTPOSCheckBox.Checked := False;
+ ShowOnSelectPanelCheckBox.Checked := False;
+ EFTPOSPaymentCheckBox.Checked := False;
+ DBGrid.SetFocus;
+end;
+
+procedure TPaymentSetupForm.SetEditStatus;
+begin
+ DBGrid.Enabled := False;
+ EditPanel.Enabled := True;
+ DeleteButton.Enabled := False;
+ NewButton.Enabled := False;
+ EditButton.Enabled := False;
+ ExitButton.Enabled := False;
+ SaveButton.Enabled := True;
+ CancelButton.Enabled := True;
+ CodeEdit.SetFocus;
+end;
+
+procedure TPaymentSetupForm.DBGridDblClick(Sender: TObject);
+begin
+ EditButtonClick(Sender);
+end;
+
+procedure TPaymentSetupForm.DeleteButtonClick(Sender: TObject);
+var
+ Payment: string;
+ Flag: boolean;
+begin
+ if (MessageBoxForm.MessagePro('Are you sure you want to delete this record?', sConfirmMsg) = mrNo) then
+    Exit;
+ Payment := Query.FieldByName('Payment').AsString;
+ Flag := False;
+ if Not DataForm.BeginTransaction then Exit;
+    try
+     Flag := DataForm.ExecQueryPro('Delete From Payment Where Payment=' + Chr(39) + CheckQuotes(Payment) + Chr(39));
+    finally
+     if Flag then
+        begin
+         DataForm.CommitTransaction;
+         OpenQuery
+        end
+      else
+       DataForm.RollBack;
+    end;
+end;
+
+procedure TPaymentSetupForm.NewButtonClick(Sender: TObject);
+begin
+ OpFlag := sNewStatus;
+ SetEditStatus;
+end;
+
+procedure TPaymentSetupForm.EditButtonClick(Sender: TObject);
+begin
+ with Query do
+  if RecordCount > 0 then
+     begin
+      OpFlag := sEditStatus;
+      CodeEdit.Text := FieldByName('Code').AsString;
+      OldCode := FieldByName('Payment').AsString;
+      PaymentEdit.Text := OldCode;
+      LinkToEFTPOSCheckBox.Checked := FieldByName('LinkToEFTPOS').AsBoolean;
+      ShowOnSelectPanelCheckBox.Checked := FieldByName('ShowOnList').AsBoolean;
+      BankChargeRateEdit.Text := Format('%6.2f', [FieldByName('SurchargeRate').AsFloat]);
+      EFTPOSPaymentCheckBox.Checked := FieldByName('EFTPOSPayment').AsBoolean;
+      SetEditStatus;
+     end;
+end;
+
+function TPaymentSetupForm.SaveData: boolean;
+var
+ SQLStr, LinkToEFTPOS, ShowOnSelectPanel, EFTPOSPayment: string;
+begin
+ if LinkToEFTPOSCheckBox.Checked then
+    LinkToEFTPOS := '1'
+   else
+    LinkToEFTPOS := '0';
+ if ShowOnSelectPanelCheckBox.Checked then
+    ShowOnSelectPanel := '1'
+   else
+    ShowOnSelectPanel := '0';
+ if EFTPOSPaymentCheckBox.Checked then
+    EFTPOSPayment := '1'
+   else
+    EFTPOSPayment := '0';
+ SQLStr := 'Insert Into Payment(Code, Payment, SurchargeRate, LinkToEFTPOS, ' +
+           'ShowOnList, EFTPOSPayment) ' +
+           'Values(' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39) + ',' +
+           Chr(39) + CheckQuotes(PaymentEdit.Text) + Chr(39) + ',' +
+           BankChargeRateEdit.Text + ',' + LinkToEFTPOS + ',' +
+           ShowOnSelectPanel + ',' + EFTPOSPayment + ')';
+ Result := DataForm.ExecQueryPro(SQLStr);
+end;
+
+function TPaymentSetupForm.ProcessEditCode: Boolean;
+var
+ RecordCount: Integer;
+begin
+ Result := True;
+ if OldCode <> PaymentEdit.Text then
+    begin
+     RecordCount := DataForm.CheckCodeSQLPro('Select Count(*) From Payment where Payment = ' + Chr(39) + CheckQuotes(PaymentEdit.Text) + Chr(39));
+     if (RecordCount > 0) and
+        (MessageBoxForm.MessagePro(PaymentEdit.Text + ' exists already, do you want to replace?', sConfirmMsg) = mrNo) then
+        begin
+         Result := False;
+         Exit;
+        end;
+     Result := DataForm.ExecQueryPro('Delete From Payment Where Payment=' + Chr(39) + CheckQuotes(PaymentEdit.Text) + Chr(39));
+    end;
+  if Result then
+     Result := DataForm.ExecQueryPro('Delete From Payment Where Payment=' + Chr(39) + CheckQuotes(OldCode) + Chr(39));
+  if Result then Result := SaveData;
+end;
+
+function TPaymentSetupForm.ProcessNewCode: boolean;
+begin
+ if DataForm.CheckCodeSQLPro('Select Count(*) From Payment where Payment=' + Chr(39) + CheckQuotes(PaymentEdit.Text) + Chr(39)) > 0 then
+    begin
+     MessageBoxForm.MessagePro(PaymentEdit.Text + ' is already exist.', sErrorMsg);
+     Result := False;
+    end
+   else
+    Result := SaveData;
+end;
+
+procedure TPaymentSetupForm.SaveButtonClick(Sender: TObject);
+var
+ Flag: boolean;
+ Code: string;
+begin
+ if CodeEdit.Text = '' then
+    begin
+     MessageBoxForm.MessagePro('Code is invalid!', sErrorMsg);
+     Exit;
+    end;
+ if PaymentEdit.Text = '' then
+    begin
+     MessageBoxForm.MessagePro('Payment is invalid!', sErrorMsg);
+     Exit;
+    end;
+ Flag := False;
+ if Not DataForm.BeginTransaction then Exit;
+ try
+  if OpFlag = sNewStatus then
+     Flag := ProcessNewCode
+    else
+     Flag := ProcessEditCode;
+ finally
+  if Flag then
+     begin
+      DataForm.CommitTransaction;
+      Code := CodeEdit.Text;
+      SetReadStatus;
+      OpenQuery;
+      Query.Locate('Code', Code, [loPartialKey]);
+     end
+    else
+     begin
+      DataForm.RollBack;
+     end;
+ end;
+end;
+
+procedure TPaymentSetupForm.CancelButtonClick(Sender: TObject);
+begin
+ SetReadStatus;
+end;
+
+procedure TPaymentSetupForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(27) then Close;
+end;
+
+procedure TPaymentSetupForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ if ExitButton.Enabled then
+    begin
+     Query.Close;
+     Action := caFree;
+     PaymentSetupForm := Nil;
+    end
+   else
+    Action := caNone;
+end;
+
+procedure TPaymentSetupForm.CodeEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then PaymentEdit.SetFocus;
+end;
+
+procedure TPaymentSetupForm.PaymentEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then BankChargeRateEdit.SetFocus;
+end;
+
+procedure TPaymentSetupForm.BankChargeRateEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then LinkToEFTPOSCheckBox.SetFocus;
+end;
+
+procedure TPaymentSetupForm.LinkToEFTPOSCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then ShowOnSelectPanelCheckBox.SetFocus;
+end;
+
+procedure TPaymentSetupForm.ShowOnSelectPanelCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then EFTPOSPaymentCheckBox.SetFocus;
+end;
+
+procedure TPaymentSetupForm.EFTPOSPaymentCheckBoxKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then SaveButton.SetFocus;
+end;
+
+procedure TPaymentSetupForm.BankChargeRateEditEnter(Sender: TObject);
+begin
+ if BankChargeRateEdit.Text <> '' then
+    BankChargeRateEdit.Text := FloatToStr(StrToFloat(BankChargeRateEdit.Text));
+end;
+
+procedure TPaymentSetupForm.BankChargeRateEditExit(Sender: TObject);
+begin
+ with Sender As TEdit do
+  begin
+   if CheckNum(Text, 6, 999.99, 0, 'F') then
+      Text := Format('%6.2f', [StrToFloat(Text)])
+     else
+      begin
+       Text := Format('%6.2f', [0.0]);
+       SetFocus;
+    end;
+  end;
+end;
+
+procedure TPaymentSetupForm.ExitButtonClick(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TPaymentSetupForm.FormShow(Sender: TObject);
+begin
+ Width := DBGridPanel.Width + 28;
+ Height := ExitButton.Top + 86;
+ OpenQuery;
+ SetReadStatus;
+end;
+
+procedure TPaymentSetupForm.PaymentSetup;
+begin
+  Application.CreateForm(TPaymentSetupForm, PaymentSetupForm);
+  PaymentSetupForm.ShowModal;
+  PaymentSetupForm.Free;
+end;
+
+end.

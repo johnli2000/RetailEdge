@@ -1,0 +1,313 @@
+unit MenuGroupSetup;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  DB, Grids, DBGrids, ExtCtrls, DBCtrls, StdCtrls, Buttons, Mask, UtilUnit,
+  ADODB, bsSkinCtrls, BusinessSkinForm, XiButton, bsSkinBoxCtrls,
+  bsSkinGrids, bsDBGrids, bsSkinData;
+
+type
+  TMenuGroupSetupForm = class(TForm)
+    DataSource: TDataSource;
+    Query: TADOQuery;
+    QueryCode: TStringField;
+    QueryDescription: TStringField;
+    bsBusinessSkinForm: TbsBusinessSkinForm;
+    WorkPanle: TbsSkinPanel;
+    EditPanel: TbsSkinPanel;
+    bsSkinStdLabel1: TbsSkinStdLabel;
+    CodeEdit: TbsSkinEdit;
+    bsSkinStdLabel2: TbsSkinStdLabel;
+    DescriptionEdit: TbsSkinEdit;
+    bsSkinPanel1: TbsSkinPanel;
+    DBGrid: TDBGrid;
+    NewButton: TXiButton;
+    EditButton: TXiButton;
+    DeleteButton: TXiButton;
+    ConfirmButton: TXiButton;
+    CancelButton: TXiButton;
+    ExitButton: TXiButton;
+    procedure OpenQuery;
+    procedure SetReadStatus;
+    procedure SetEditStatus;
+    procedure NewButtonClick(Sender: TObject);
+    procedure EditButtonClick(Sender: TObject);
+    function  ProcessEditCode: Boolean;
+    function  ProcessNewCode: Boolean;
+    procedure ConfirmButtonClick(Sender: TObject);
+    procedure CancelButtonClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure DeleteButtonClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure DBGridDblClick(Sender: TObject);
+    procedure MenuGroupSetupPro;
+    procedure CodeEditKeyPress(Sender: TObject; var Key: Char);
+    procedure DescriptionEditKeyPress(Sender: TObject; var Key: Char);
+  private { Private declarations }
+   OpFlag: Integer;
+   OldMenuGroupCode: String;
+  public
+    { Public declarations }
+  end;
+
+var
+ MenuGroupSetupForm: TMenuGroupSetupForm;
+
+implementation
+
+uses DataUnit, MainMenu, MessageBox, Keyboard;
+
+{$R *.DFM}
+
+procedure TMenuGroupSetupForm.OpenQuery;
+begin
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add('Select * From MenuGroupTable Order By Code');
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TMenuGroupSetupForm.SetReadStatus;
+begin
+ DBGrid.Enabled := True;
+ NewButton.Enabled := True;
+ EditButton.Enabled := True;
+ DeleteButton.Enabled := True;
+ ExitButton.Enabled := True;
+ ConfirmButton.Enabled := False;
+ CancelButton.Enabled := False;
+ CodeEdit.Text := '';
+ DescriptionEdit.Text := '';
+ EditPanel.Enabled := False;
+ DBGrid.SetFocus;
+end;
+
+procedure TMenuGroupSetupForm.SetEditStatus;
+begin
+ DBGrid.Enabled := False;
+ EditPanel.Enabled := True;
+ DeleteButton.Enabled := False;
+ NewButton.Enabled := False;
+ EditButton.Enabled := False;
+ ExitButton.Enabled := False;
+ ConfirmButton.Enabled := True;
+ CancelButton.Enabled := True;
+ CodeEdit.SetFocus;
+end;
+
+procedure TMenuGroupSetupForm.DBGridDblClick(Sender: TObject);
+begin
+ EditButtonClick(Sender);
+end;
+
+procedure TMenuGroupSetupForm.DeleteButtonClick(Sender: TObject);
+var
+ SQLStr, MenuGroupCode: string;
+ Flag: boolean;
+begin
+ if (MessageBoxForm.MessagePro('Are you sure you want to delete this record?', sConfirmMsg) = mrNo) then
+    Exit;
+ MenuGroupCode := Query.FieldByName('Code').AsString;
+ SQLStr := 'Select Count(*) From Category Where MenuGroupCode=' + Chr(39) + CheckQuotes(MenuGroupCode) + Chr(39);
+ if DataForm.CheckCodeSQLPro(SQLStr) > 0 then
+    begin
+     MessageBoxForm.MessagePro('This item can not be delete' +
+                               Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+                               'that is used for category database.', sErrorMsg);
+     Exit;
+    end;
+ Flag := False;
+ if Not DataForm.BeginTransaction then Exit;
+ try
+  Flag := DataForm.ExecQueryPro('Delete From MenuGroupTable Where Code=' + Chr(39) + CheckQuotes(MenuGroupCode) + Chr(39));
+ finally
+  if Flag then
+     begin
+      DataForm.CommitTransaction;
+      OpenQuery;
+     end
+    else
+     DataForm.RollBack;
+ end;
+end;
+
+procedure TMenuGroupSetupForm.NewButtonClick(Sender: TObject);
+begin
+ OpFlag := sNewStatus;
+ SetEditStatus;
+end;
+
+procedure TMenuGroupSetupForm.EditButtonClick(Sender: TObject);
+begin
+ if Query.RecordCount > 0 then
+    begin
+     OpFlag := sEditStatus;
+     OldMenuGroupCode := Query.FieldByName('Code').AsString;
+     CodeEdit.Text := OldMenuGroupCode;
+     DescriptionEdit.Text := Query.FieldByName('Description').AsString;
+     SetEditStatus;
+    end;
+end;
+
+function TMenuGroupSetupForm.ProcessEditCode: Boolean;
+var
+ SQLStr: string;
+ RecordCount: Integer;
+begin
+ Result := True;
+ if OldMenuGroupCode <> CodeEdit.Text then
+    begin
+     SQLStr := 'Select Count(*) From MenuGroupTable where Code = ' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39);
+     RecordCount := DataForm.CheckCodeSQLPro(SQLStr);
+     if (RecordCount > 0) and
+        (MessageBoxForm.MessagePro('Code ' + CodeEdit.Text + ' is already exist.' +
+            Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+        'Do you want to replace?', sConfirmMsg) = mrNo) then
+        begin
+         Result := False;
+         Exit;
+        end;
+     SQLStr := 'Delete From MenuGroupTable Where Code=' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39);
+     Result := DataForm.ExecQueryPro(SQLStr);
+    end;
+  if Result then
+     begin
+      SQLStr := 'Delete From MenuGroupTable Where Code=' + Chr(39) + CheckQuotes(OldMenuGroupCode) + Chr(39);
+      Result := DataForm.ExecQueryPro(SQLStr);
+     end;
+  if Result then
+     begin
+      SQLStr := 'INSERT INTO MenuGroupTable(Code, Description) ' +
+                'VALUES(' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39) + ',' +
+                Chr(39) + CheckQuotes(DescriptionEdit.Text) + Chr(39) + ')';
+      Result := DataForm.ExecQueryPro(SQLStr);
+     end;
+  if Result then
+     begin
+      SQLStr := 'Update Category Set MenuGroupCode=' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39) + ' ' +
+                'Where MenuGroupCode=' + Chr(39) + CheckQuotes(OldMenuGroupCode) + Chr(39);
+      Result := DataForm.ExecQueryPro(SQLStr);
+     end;
+end;
+
+function TMenuGroupSetupForm.ProcessNewCode: boolean;
+begin
+ if DataForm.CheckCodeSQLPro('Select Count(*) From MenuGroupTable where Code=' +
+          Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39)) > 0 then
+    begin
+     MessageBoxForm.MessagePro(CodeEdit.Text + ' is already exist.', sErrorMsg);
+     Result := False;
+    end
+   else
+    Result := DataForm.ExecQueryPro('INSERT INTO MenuGroupTable(Code, Description) ' +
+               'VALUES(' + Chr(39) + CheckQuotes(CodeEdit.Text) + Chr(39) + ',' +
+               Chr(39) + CheckQuotes(DescriptionEdit.Text) + Chr(39) + ')');
+end;
+
+procedure TMenuGroupSetupForm.ConfirmButtonClick(Sender: TObject);
+var
+ Flag: boolean;
+ Code: string;
+begin
+ if CodeEdit.Text = '' then
+    begin
+     MessageBoxForm.MessagePro('Code is invalid!', sErrorMsg);
+     Exit;
+    end;
+ if DescriptionEdit.Text = '' then
+    begin
+     MessageBoxForm.MessagePro('Description is invalid!', sErrorMsg);
+     Exit;
+    end;
+ Flag := False;
+ if Not DataForm.BeginTransaction then Exit;
+ try
+  if OpFlag = sNewStatus then
+     Flag := ProcessNewCode
+    else
+     Flag := ProcessEditCode;
+ finally
+  if Flag then
+     begin
+      DataForm.CommitTransaction;
+      Code := CodeEdit.Text;
+      SetReadStatus;
+      OpenQuery;
+      Query.Locate('Code', Code, [loPartialKey]);
+     end
+    else
+     DataForm.RollBack;
+ end;
+end;
+
+procedure TMenuGroupSetupForm.CancelButtonClick(Sender: TObject);
+begin
+ SetReadStatus;
+end;
+
+procedure TMenuGroupSetupForm.CodeEditKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(13) then DescriptionEdit.SetFocus
+    else
+     if Not (Key in ['0'..'9', Chr(8)]) then Key := Chr(0);
+end;
+
+procedure TMenuGroupSetupForm.DescriptionEditKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(13) then ConfirmButton.SetFocus;
+end;
+
+procedure TMenuGroupSetupForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(27) then Close;
+end;
+
+procedure TMenuGroupSetupForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ if ExitButton.Enabled then
+    begin
+     Query.Close;
+     Action := caFree;
+     MenuGroupSetupForm := NIL;
+    end
+end;
+
+procedure TMenuGroupSetupForm.ExitButtonClick(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TMenuGroupSetupForm.FormShow(Sender: TObject);
+begin
+ Width := ExitButton.Left +ExitButton.Width + 28;
+ Height := WorkPanle.Height + 50;
+ OpenQuery;
+ SetReadStatus;
+end;
+
+procedure TMenuGroupSetupForm.MenuGroupSetupPro;
+begin
+ if MenuGroupSetupForm = NIL then
+    MenuGroupSetupForm := TMenuGroupSetupForm.Create(Self)
+   else
+    begin
+      bsBusinessSkinForm.WindowState := wsNormal;
+      MenuGroupSetupForm.Show;
+    end;  
+end;
+
+
+end.

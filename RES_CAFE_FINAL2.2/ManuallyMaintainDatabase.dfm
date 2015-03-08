@@ -1,0 +1,1017 @@
+object ManuallyMaintainDatabaseForm: TManuallyMaintainDatabaseForm
+  Left = 152
+  Top = 23
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Database Maintenance'
+  ClientHeight = 732
+  ClientWidth = 1008
+  Color = clWindow
+  Ctl3D = False
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  KeyPreview = True
+  OldCreateOrder = True
+  Position = poScreenCenter
+  Scaled = False
+  OnClose = FormClose
+  OnKeyDown = FormKeyDown
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object OrderNoEdit: TDBEdit
+    Left = 144
+    Top = 40
+    Width = 121
+    Height = 19
+    TabStop = False
+    DataField = 'OrderNo'
+    DataSource = DataSource
+    TabOrder = 0
+  end
+  object DBGridPanel: TbsSkinPanel
+    Left = 6
+    Top = 6
+    Width = 611
+    Height = 715
+    HintImageIndex = 0
+    TabOrder = 1
+    SkinData = MainForm.bsSkinData
+    SkinDataName = 'panel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RibbonStyle = False
+    ImagePosition = bsipDefault
+    TransparentMode = False
+    CaptionImageIndex = -1
+    RealHeight = -1
+    AutoEnabledControls = True
+    CheckedMode = False
+    Checked = False
+    DefaultAlignment = taLeftJustify
+    DefaultCaptionHeight = 22
+    BorderStyle = bvFrame
+    CaptionMode = False
+    RollUpMode = False
+    RollUpState = False
+    NumGlyphs = 1
+    Spacing = 2
+    Caption = 'DBGridPanel'
+    object DBGrid: TDBGrid
+      Left = 1
+      Top = 1
+      Width = 609
+      Height = 713
+      Align = alClient
+      BorderStyle = bsNone
+      DataSource = DataSource
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgAlwaysShowSelection, dgCancelOnExit, dgMultiSelect]
+      ReadOnly = True
+      TabOrder = 0
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'MS Sans Serif'
+      TitleFont.Style = []
+      OnDblClick = DBGridDblClick
+      Columns = <
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'OrderDate'
+          Title.Alignment = taCenter
+          Title.Caption = 'Date'
+          Width = 119
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'OrderNo'
+          Title.Alignment = taCenter
+          Title.Caption = 'Order No.'
+          Width = 96
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'TableNo'
+          Title.Alignment = taCenter
+          Title.Caption = 'Table No'
+          Visible = False
+        end
+        item
+          Expanded = False
+          FieldName = 'TotalInvoice'
+          Title.Alignment = taCenter
+          Title.Caption = 'Amount'
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'PaidAmount'
+          Title.Alignment = taCenter
+          Title.Caption = 'Paid '
+          Width = 80
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'Balance'
+          Title.Alignment = taCenter
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'InvoiceNo'
+          Title.Alignment = taCenter
+          Title.Caption = 'Invoice No'
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'VIPNo'
+          Title.Alignment = taCenter
+          Title.Caption = 'V.I.P. No.'
+          Visible = False
+        end
+        item
+          Expanded = False
+          FieldName = 'OpName'
+          Title.Alignment = taCenter
+          Title.Caption = 'Operator'
+          Visible = True
+        end>
+    end
+  end
+  object TotalPanel: TbsSkinPanel
+    Left = 621
+    Top = 6
+    Width = 306
+    Height = 123
+    HintImageIndex = 0
+    TabOrder = 2
+    SkinDataName = 'panel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RibbonStyle = False
+    ImagePosition = bsipDefault
+    TransparentMode = False
+    CaptionImageIndex = -1
+    RealHeight = -1
+    AutoEnabledControls = True
+    CheckedMode = False
+    Checked = False
+    DefaultAlignment = taLeftJustify
+    DefaultCaptionHeight = 22
+    BorderStyle = bvFrame
+    CaptionMode = False
+    RollUpMode = False
+    RollUpState = False
+    NumGlyphs = 1
+    Spacing = 2
+    Caption = 'TotalPanel'
+    object Label1: TLabel
+      Left = 17
+      Top = 16
+      Width = 36
+      Height = 13
+      Caption = 'Amount'
+      Color = clBtnFace
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 17
+      Top = 40
+      Width = 81
+      Height = 13
+      Caption = 'Selected Amount'
+      Color = clBtnFace
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 17
+      Top = 64
+      Width = 39
+      Height = 13
+      Caption = 'Balance'
+      Color = clBtnFace
+      ParentColor = False
+    end
+    object TotalSalesEdit: TStaticText
+      Left = 186
+      Top = 14
+      Width = 100
+      Height = 17
+      Alignment = taRightJustify
+      AutoSize = False
+      BorderStyle = sbsSingle
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 0
+    end
+    object SelectedAmountEdit: TStaticText
+      Left = 186
+      Top = 38
+      Width = 100
+      Height = 17
+      Alignment = taRightJustify
+      AutoSize = False
+      BorderStyle = sbsSingle
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 1
+    end
+    object BalanceEdit: TStaticText
+      Left = 186
+      Top = 62
+      Width = 100
+      Height = 17
+      Alignment = taRightJustify
+      AutoSize = False
+      BorderStyle = sbsSingle
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 2
+    end
+  end
+  object ControlPanel: TbsSkinPanel
+    Left = 621
+    Top = 130
+    Width = 305
+    Height = 93
+    HintImageIndex = 0
+    TabOrder = 3
+    SkinDataName = 'panel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RibbonStyle = False
+    ImagePosition = bsipDefault
+    TransparentMode = False
+    CaptionImageIndex = -1
+    RealHeight = -1
+    AutoEnabledControls = True
+    CheckedMode = False
+    Checked = False
+    DefaultAlignment = taLeftJustify
+    DefaultCaptionHeight = 22
+    BorderStyle = bvFrame
+    CaptionMode = False
+    RollUpMode = False
+    RollUpState = False
+    NumGlyphs = 1
+    Spacing = 2
+    Caption = 'ControlPanel'
+    object Label2: TLabel
+      Left = 164
+      Top = 12
+      Width = 13
+      Height = 13
+      Caption = 'To'
+      Color = clBtnFace
+      ParentColor = False
+    end
+    object DateCheckBox: TCheckBox
+      Left = 10
+      Top = 12
+      Width = 43
+      Height = 17
+      Caption = 'Date'
+      Color = clBtnFace
+      ParentColor = False
+      TabOrder = 0
+      OnClick = DateCheckBoxClick
+    end
+    object DateEdit1: TMaskEdit
+      Left = 56
+      Top = 10
+      Width = 65
+      Height = 19
+      EditMask = '!99/99/0000;1;_'
+      MaxLength = 10
+      TabOrder = 1
+      Text = '  /  /    '
+      OnClick = DateEditClick
+      OnExit = DateEdit1Exit
+      OnKeyDown = DateEdit1KeyDown
+    end
+    object DateEdit2: TMaskEdit
+      Left = 187
+      Top = 10
+      Width = 65
+      Height = 19
+      EditMask = '!99/99/0000;1;_'
+      MaxLength = 10
+      TabOrder = 3
+      Text = '  /  /    '
+      OnClick = DateEditClick
+      OnExit = DateEdit2Exit
+      OnKeyDown = DateEdit2KeyDown
+    end
+    object PaybyCheckBox: TCheckBox
+      Left = 10
+      Top = 36
+      Width = 101
+      Height = 17
+      Caption = 'Payment Method'
+      Color = clBtnFace
+      ParentColor = False
+      TabOrder = 5
+      OnClick = PayByCheckBoxClick
+    end
+    object PaybyComboBox: TComboBox
+      Left = 115
+      Top = 34
+      Width = 176
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 6
+    end
+    object InvoiceComboBox: TComboBox
+      Left = 10
+      Top = 62
+      Width = 95
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      ItemIndex = 0
+      TabOrder = 7
+      Text = 'All'
+      Items.Strings = (
+        'All'
+        'Not Invoiced'
+        'Only Invoiced')
+    end
+    object PaymentComboBox: TComboBox
+      Left = 198
+      Top = 62
+      Width = 91
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      ItemIndex = 0
+      TabOrder = 8
+      Text = 'List all'
+      Items.Strings = (
+        'List all'
+        'List un-paid'
+        'List paid in full'
+        'List over paid')
+    end
+    object TimeEdit1: TMaskEdit
+      Left = 124
+      Top = 10
+      Width = 33
+      Height = 19
+      EditMask = '!90:00;1;_'
+      MaxLength = 5
+      TabOrder = 2
+      Text = '  :  '
+      OnClick = TimeEditClick
+    end
+    object TimeEdit2: TMaskEdit
+      Left = 255
+      Top = 10
+      Width = 33
+      Height = 19
+      EditMask = '!90:00;1;_'
+      MaxLength = 5
+      TabOrder = 4
+      Text = '  :  '
+      OnClick = TimeEditClick
+    end
+  end
+  object bsSkinPanel1: TbsSkinPanel
+    Left = 622
+    Top = 225
+    Width = 305
+    Height = 48
+    HintImageIndex = 0
+    TabOrder = 4
+    Visible = False
+    SkinDataName = 'panel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RibbonStyle = False
+    ImagePosition = bsipDefault
+    TransparentMode = False
+    CaptionImageIndex = -1
+    RealHeight = -1
+    AutoEnabledControls = True
+    CheckedMode = False
+    Checked = False
+    DefaultAlignment = taLeftJustify
+    DefaultCaptionHeight = 22
+    BorderStyle = bvFrame
+    CaptionMode = False
+    RollUpMode = False
+    RollUpState = False
+    NumGlyphs = 1
+    Spacing = 2
+    Caption = 'bsSkinPanel1'
+    object MachineIDCheckBox: TCheckBox
+      Left = 18
+      Top = 17
+      Width = 78
+      Height = 17
+      Caption = 'Machine ID'
+      Color = clBtnFace
+      ParentColor = False
+      TabOrder = 0
+      OnClick = MachineIDCheckBoxClick
+    end
+    object MachineIDEdit: TStaticText
+      Left = 98
+      Top = 16
+      Width = 173
+      Height = 17
+      AutoSize = False
+      BorderStyle = sbsSingle
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 1
+      OnClick = MachineIDEditClick
+    end
+  end
+  object SearchButton: TXiButton
+    Left = 630
+    Top = 287
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Search'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 5
+    OnClick = SearchButtonClick
+  end
+  object ViewButton: TXiButton
+    Left = 474
+    Top = 565
+    Width = 100
+    Height = 40
+    ColorFace = 15987699
+    ColorGrad = 12369084
+    ColorDark = 10987431
+    ColorLight = 16250871
+    ColorBorder = 6447714
+    ColorText = clBlack
+    OverColorFace = 15790320
+    OverColorGrad = 10921638
+    OverColorDark = 10658466
+    OverColorLight = 15658734
+    OverColorBorder = 7697781
+    OverColorText = clBlack
+    DownColorFace = 13290186
+    DownColorGrad = 14342874
+    DownColorDark = 15329769
+    DownColorLight = 8158332
+    DownColorBorder = 5131854
+    DownColorText = clBlack
+    DisabledColorFace = 15658734
+    DisabledColorGrad = clWhite
+    DisabledColorDark = 13816530
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clGray
+    DisabledColorText = clGray
+    ColorFocusRect = 11382189
+    ColorScheme = csNeoSilver
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'View Detail'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 7
+    Visible = False
+    OnClick = ViewButtonClick
+  end
+  object ExitButton: TXiButton
+    Left = 798
+    Top = 631
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Exit'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 8
+    OnClick = ExitButtonClick
+  end
+  object EditPaymentButton: TXiButton
+    Left = 478
+    Top = 629
+    Width = 100
+    Height = 40
+    ColorFace = 15987699
+    ColorGrad = 12369084
+    ColorDark = 10987431
+    ColorLight = 16250871
+    ColorBorder = 6447714
+    ColorText = clBlack
+    OverColorFace = 15790320
+    OverColorGrad = 10921638
+    OverColorDark = 10658466
+    OverColorLight = 15658734
+    OverColorBorder = 7697781
+    OverColorText = clBlack
+    DownColorFace = 13290186
+    DownColorGrad = 14342874
+    DownColorDark = 15329769
+    DownColorLight = 8158332
+    DownColorBorder = 5131854
+    DownColorText = clBlack
+    DisabledColorFace = 15658734
+    DisabledColorGrad = clWhite
+    DisabledColorDark = 13816530
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clGray
+    DisabledColorText = clGray
+    ColorFocusRect = 11382189
+    ColorScheme = csNeoSilver
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Edit Payment'
+    TabOrder = 6
+    Visible = False
+    OnClick = EditPaymentButtonClick
+  end
+  object XiButton1: TXiButton
+    Left = 630
+    Top = 451
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Select 50%'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 9
+    OnClick = XiButton1Click
+  end
+  object XiButton2: TXiButton
+    Left = 630
+    Top = 542
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Select 33%'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 10
+    OnClick = XiButton2Click
+  end
+  object XiButton3: TXiButton
+    Left = 630
+    Top = 632
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Select 20%'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 11
+    OnClick = XiButton3Click
+  end
+  object SelectAllButton: TXiButton
+    Left = 630
+    Top = 364
+    Width = 130
+    Height = 60
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Select All'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 12
+    OnClick = SelectAllButtonClick
+  end
+  object CalcButton: TXiButton
+    Left = 796
+    Top = 288
+    Width = 130
+    Height = 137
+    ColorFace = clWhite
+    ColorGrad = clWhite
+    ColorDark = clWhite
+    ColorLight = clWhite
+    ColorBorder = clBlack
+    ColorText = clBlack
+    OverColorFace = clWhite
+    OverColorGrad = clWhite
+    OverColorDark = clWhite
+    OverColorLight = clWhite
+    OverColorBorder = clBlack
+    OverColorText = clBlack
+    DownColorFace = clWhite
+    DownColorGrad = clWhite
+    DownColorDark = clWhite
+    DownColorLight = clWhite
+    DownColorBorder = clBlack
+    DownColorText = clBlack
+    DisabledColorFace = clWhite
+    DisabledColorGrad = clWhite
+    DisabledColorDark = clWhite
+    DisabledColorLight = clWhite
+    DisabledColorBorder = clBlack
+    DisabledColorText = clGray
+    ColorFocusRect = clWhite
+    ColorScheme = csWhite
+    Ctl3D = True
+    Layout = blGlyphLeft
+    Spacing = 4
+    TransparentGlyph = True
+    Gradient = True
+    HotTrack = True
+    Caption = 'Calc'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 13
+    OnClick = CalcButtonClick
+  end
+  object DataSource: TDataSource
+    DataSet = Query
+    Left = 14
+    Top = 48
+  end
+  object TempQuery: TADOQuery
+    LockType = ltUnspecified
+    CommandTimeout = 300
+    Parameters = <>
+    Left = 78
+    Top = 50
+  end
+  object Query: TADOQuery
+    Connection = DataForm.ADOConnection
+    CursorType = ctStatic
+    LockType = ltUnspecified
+    OnCalcFields = QueryCalcFields
+    CommandTimeout = 300
+    Parameters = <>
+    SQL.Strings = (
+      'Select OrderH.OrderNo, OrderDate, TableNo,'
+      
+        '       Amount + ServiceCharge + OtherCharge + Tips + Surcharge A' +
+        's TotalInvoice,'
+      '                OrderH.PaidAmount, InvoiceNo, VIPNo, OpName'
+      '                From OrderH Where PriceIncludesGST <> 0')
+    Left = 46
+    Top = 48
+    object QueryOrderDate: TDateTimeField
+      FieldName = 'OrderDate'
+      DisplayFormat = 'dd/mm/yyyy hh:mm'
+    end
+    object QueryOrderNo: TStringField
+      FieldName = 'OrderNo'
+      Size = 10
+    end
+    object QueryPaidAmount: TFloatField
+      FieldName = 'PaidAmount'
+    end
+    object QueryInvoiceNo: TStringField
+      FieldName = 'InvoiceNo'
+      Size = 11
+    end
+    object QueryBalance: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'Balance'
+      Calculated = True
+    end
+    object QueryVIPNo: TIntegerField
+      FieldName = 'VIPNo'
+      DisplayFormat = '0######0'
+    end
+    object QueryTableNo: TStringField
+      FieldName = 'TableNo'
+      Size = 10
+    end
+    object QueryOpName: TStringField
+      FieldName = 'OpName'
+      Size = 15
+    end
+    object QueryTotalInvoice: TFloatField
+      FieldName = 'TotalInvoice'
+    end
+  end
+  object StockQuery: TADOQuery
+    LockType = ltUnspecified
+    CommandTimeout = 300
+    Parameters = <>
+    Left = 110
+    Top = 52
+  end
+  object bsBusinessSkinForm: TbsBusinessSkinForm
+    ShowMDIScrollBars = True
+    WindowState = wsNormal
+    QuickButtons = <>
+    QuickButtonsShowHint = False
+    QuickButtonsShowDivider = True
+    ClientInActiveEffect = False
+    ClientInActiveEffectType = bsieSemiTransparent
+    DisableSystemMenu = False
+    AlwaysResize = False
+    PositionInMonitor = bspDefault
+    UseFormCursorInNCArea = False
+    MaxMenuItemsInWindow = 0
+    ClientWidth = 0
+    ClientHeight = 0
+    HideCaptionButtons = False
+    AlwaysShowInTray = False
+    LogoBitMapTransparent = False
+    AlwaysMinimizeToTray = False
+    UseSkinFontInMenu = False
+    UseSkinFontInCaption = True
+    UseSkinSizeInMenu = True
+    ShowIcon = False
+    MaximizeOnFullScreen = False
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    ShowObjectHint = False
+    UseDefaultObjectHint = False
+    MenusAlphaBlend = False
+    MenusAlphaBlendAnimation = False
+    MenusAlphaBlendValue = 200
+    DefCaptionFont.Charset = DEFAULT_CHARSET
+    DefCaptionFont.Color = clBtnText
+    DefCaptionFont.Height = 14
+    DefCaptionFont.Name = 'Arial'
+    DefCaptionFont.Style = [fsBold]
+    DefInActiveCaptionFont.Charset = DEFAULT_CHARSET
+    DefInActiveCaptionFont.Color = clBtnShadow
+    DefInActiveCaptionFont.Height = 14
+    DefInActiveCaptionFont.Name = 'Arial'
+    DefInActiveCaptionFont.Style = [fsBold]
+    DefMenuItemHeight = 20
+    DefMenuItemFont.Charset = DEFAULT_CHARSET
+    DefMenuItemFont.Color = clWindowText
+    DefMenuItemFont.Height = 14
+    DefMenuItemFont.Name = 'Arial'
+    DefMenuItemFont.Style = []
+    UseDefaultSysMenu = False
+    SkinData = MainForm.bsSkinData
+    MinHeight = 0
+    MinWidth = 0
+    MaxHeight = 0
+    MaxWidth = 0
+    Magnetic = False
+    MagneticSize = 5
+    BorderIcons = [biSystemMenu]
+    Left = 16
+    Top = 82
+  end
+end

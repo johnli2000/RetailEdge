@@ -1,0 +1,372 @@
+unit AttendanceRpt;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Grids, DBGrids, ExtCtrls, Db, StdCtrls, Buttons, Mask, DataUnit, UtilUnit,
+  ADODB, bsSkinCtrls, BusinessSkinForm, XiButton;
+
+type
+  TAttendanceReportForm = class(TForm)
+    SummaryDBGrid: TDBGrid;
+    DetailDBGrid: TDBGrid;
+    Label1: TLabel;
+    DateEdit1: TMaskEdit;
+    TimeEdit1: TMaskEdit;
+    Label2: TLabel;
+    DateEdit2: TMaskEdit;
+    TimeEdit2: TMaskEdit;
+    bsBusinessSkinForm: TbsBusinessSkinForm;
+    SummaryDBGridPanel: TbsSkinPanel;
+    DetailDBGridPanel: TbsSkinPanel;
+    SummaryDataSource: TDataSource;
+    DetailDataSource: TDataSource;
+    SummaryQuery: TADOQuery;
+    DetailQuery: TADOQuery;
+    ControlPanel: TbsSkinPanel;
+    SummaryQueryStaffName: TStringField;
+    SummaryQueryWorkHours: TFloatField;
+    SummaryQueryWage: TFloatField;
+    DetailQueryStaffName: TStringField;
+    DetailQueryLoginTime: TDateTimeField;
+    DetailQueryLogoutTime: TDateTimeField;
+    DetailQueryIDNo: TIntegerField;
+    DetailQueryWorkHours: TFloatField;
+    SearchButton: TXiButton;
+    EditButton: TXiButton;
+    DeleteButton: TXiButton;
+    PrintButton: TXiButton;
+    ExitButton: TXiButton;
+    procedure OpenSummaryQuery;
+    procedure OpenDetailQuery(StaffName: string);
+    procedure SearchButtonClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure DateEditClick(Sender: TObject);
+    procedure TimeEditClick(Sender: TObject);
+    procedure DateEdit1Exit(Sender: TObject);
+    procedure DateEdit2Exit(Sender: TObject);
+    procedure DateEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure TimeEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DateEdit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure TimeEdit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure AttendanceReportPro;
+    procedure SummaryDBGridCellClick(Column: TColumn);
+    procedure DetailQueryCalcFields(DataSet: TDataSet);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure DetailDBGridDblClick(Sender: TObject);
+    procedure EditButtonClick(Sender: TObject);
+    function  DeleteRecordPro: boolean;
+    procedure DeleteButtonClick(Sender: TObject);
+    procedure PrintButtonClick(Sender: TObject);
+  private { Private declarations }
+    DateTemp1, DateTemp2: TDateTime;
+  public
+    { Public declarations }
+  end;
+
+var
+  AttendanceReportForm: TAttendanceReportForm;
+
+implementation
+
+uses DatePanel, TimePanel, MainMenu, PrintAttendanceReport, AttendanceEdit,
+     MessageBox, PrintAttendanceDetailReport, PrintAttendanceReportSelect,
+     PrintAttendanceSummaryReport;
+
+{$R *.DFM}
+
+procedure TAttendanceReportForm.OpenSummaryQuery;
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select Attendance.StaffName, ' +
+           'Sum(24 * (CAST(LogoutTime AS Float)-CAST(LoginTime As Float))) As WorkHours, ' +
+           'Sum(24 * Rate * (CAST(LogoutTime AS Float) - CAST(LoginTime As Float))) As Wage ' +
+           'From Attendance, AccessMenu ' +
+           'Where Attendance.StaffName=AccessMenu.StaffName and ' +
+           'LoginTime>=' + ConvertDateTime(DateTemp1) +
+           ' and LoginTime<=' + ConvertDateTime(DateTemp2) +
+           ' Group By Attendance.StaffName Order By Attendance.StaffName';
+ Screen.Cursor := crHourGlass;
+ with SummaryQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TAttendanceReportForm.OpenDetailQuery(StaffName: string);
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select StaffName, LoginTime, LogoutTime, IDNo ' +
+           'From Attendance Where StaffName=' +
+            Chr(39) + CheckQuotes(StaffName) + Chr(39) +
+           ' and LoginTime>=' + ConvertDateTime(DateTemp1) +
+           ' and LoginTime<=' + ConvertDateTime(DateTemp2) +
+           ' Order By LoginTime';
+ Screen.Cursor := crHourGlass;
+ with DetailQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TAttendanceReportForm.DetailQueryCalcFields(DataSet: TDataSet);
+begin
+ with DetailQuery do
+  if FieldByName('LogoutTime').AsDateTime <> 0 then
+     FieldByName('WorkHours').AsFloat := (FieldByName('LogoutTime').AsDateTime - FieldByName('LoginTime').AsDateTime) * 24;
+end;
+
+procedure TAttendanceReportForm.SearchButtonClick(Sender: TObject);
+begin
+ Datetemp1 := TransferDate(DateEdit1.Text) + StrToTime(TimeEdit1.Text);
+ Datetemp2 := TransferDate(DateEdit2.Text) + StrToTime(TimeEdit2.Text);
+ OpenSummaryQuery;
+ with SummaryQuery do
+  if Active and (RecordCount > 0) then
+    OpenDetailQuery(FieldByName('StaffName').AsString);
+ SummaryDBGrid.SetFocus;
+end;
+
+procedure TAttendanceReportForm.PrintButtonClick(Sender: TObject);
+var
+ StaffName: string;
+ ReportKind: integer;
+ Date1, Date2: TDateTime;
+begin
+ if PrintAttendanceReportSelectForm.PrintAttendanceReportSelectPro(ReportKind) then
+    case ReportKind of
+     1:  if SummaryQuery.Active and (SummaryQuery.RecordCount > 0) then
+           begin
+             Date1 := TransferDate(DateEdit1.Text) + StrToTime(TimeEdit1.Text);
+             Date2 := TransferDate(DateEdit2.Text) + StrToTime(TimeEdit2.Text);
+             PrintAttendanceSummaryReportForm.PrintAttendanceSummaryReportPro(Date1, Date2);
+           end;
+     2: if SummaryQuery.Active and (SummaryQuery.RecordCount > 0) then
+           begin
+            StaffName := SummaryQuery.FieldByName('StaffName').AsString;
+            PrintAttendanceReportPro;
+            SummaryQuery.Locate('StaffName', StaffName, [loPartialKey]);
+           end;
+     3: with DetailQuery do
+         if Active and (RecordCount > 0) then
+             PrintAttendanceDetailReportPro;
+    end;
+end;
+
+procedure TAttendanceReportForm.DetailDBGridDblClick(Sender: TObject);
+begin
+ if EditButton.Enabled then EditButtonClick(Sender);
+end;
+
+procedure TAttendanceReportForm.EditButtonClick(Sender: TObject);
+var
+ StaffName: string;
+ IDNo: integer;
+begin
+ if DetailQuery.Active and (DetailQuery.RecordCount > 0) then
+    begin
+     StaffName := DetailQuery.FieldByName('StaffName').AsString;
+     IDNo := DetailQuery.FieldByName('IDNo').AsInteger;
+     if AttendanceEditForm.AttendanceEditPro(StaffName, IDNo) then
+        begin
+         OpenSummaryQuery;
+         if SummaryQuery.Active and (SummaryQuery.RecordCount > 0) then
+            SummaryQuery.Locate('StaffName', StaffName, [loPartialKey]);
+         if SummaryQuery.FieldByName('StaffName').AsString = StaffName then
+            begin
+             OpenDetailQuery(StaffName);
+             DetailQuery.Locate('IDNo', IDNo, [loPartialKey]);
+            end;
+        end;
+    end;
+end;
+
+function TAttendanceReportForm.DeleteRecordPro: boolean;
+var
+ SQLStr, StaffName: string;
+ IDNo: integer;
+begin
+ Result := True;
+ with DetailQuery do
+  begin
+   DisableControls;
+   First;
+   StaffName := FieldByName('StaffName').AsString;
+   while Result and Not EOF do
+    begin
+     if DetailDBGrid.SelectedRows.CurrentRowSelected then
+        begin
+         IDNo := FieldByName('IDNo').AsInteger;
+         SQLStr := 'Delete From Attendance Where ' +
+                   'StaffName=' + Chr(39) + CheckQuotes(StaffName) + Chr(39) +
+                   ' and IDNo=' + intToStr(IDNo);
+         Result := DataForm.ExecQueryPro(SQLStr);
+        end;
+     Next;
+    end;
+   EnableControls;
+  end;
+end;
+
+procedure TAttendanceReportForm.DeleteButtonClick(Sender: TObject);
+var
+ Flag: boolean;
+ StaffName: string;
+begin
+ if Not DetailQuery.Active or (DetailQuery.RecordCount = 0) or
+    (DetailDBGrid.SelectedRows.Count = 0) or
+    (MessageBoxForm.MessagePro('Are you sure you want to delete records ?', sConfirmMsg) = mrNo) then Exit;
+ StaffName := DetailQuery.FieldByName('StaffName').AsString;
+ DataForm.BeginTransaction;
+ Flag := True;
+ try
+  Flag := DeleteRecordPro;
+ finally
+  if Flag then
+     DataForm.CommitTransaction
+    else
+     begin
+      DataForm.RollBack;
+     end;
+ end;
+ if Flag then
+    begin
+     OpenSummaryQuery;
+     if SummaryQuery.Active and (SummaryQuery.RecordCount > 0) then
+        begin
+         SummaryQuery.Locate('StaffName', StaffName, [loPartialKey]);
+         if SummaryQuery.FieldByName('StaffName').AsString <> StaffName then
+            StaffName := SummaryQuery.FieldByName('StaffName').AsString;
+        end;
+        OpenDetailQuery(StaffName);
+    end;
+end;
+
+procedure TAttendanceReportForm.SummaryDBGridCellClick(Column: TColumn);
+begin
+ if SummaryQuery.Active and (SummaryQuery.RecordCount > 0) then
+    OpenDetailQuery(SummaryQuery.FieldByName('StaffName').asString);
+end;
+
+procedure TAttendanceReportForm.ExitButtonClick(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TAttendanceReportForm.DateEditClick(Sender: TObject);
+var
+ DateTemp: TDateTime;
+begin
+ with Sender As TMaskEdit do
+  begin
+   DateTemp := TransferDate(Text);
+   if DateForm.ReadDatePro(DateTemp) then
+      Text := FormatDateTime('dd/mm/yyyy', DateTemp);
+  end;
+end;
+
+procedure TAttendanceReportForm.TimeEditClick(Sender: TObject);
+var
+ TimeStr: string;
+begin
+ with Sender As TMaskEdit do
+  begin
+   TimeStr := Text;
+   if TimeForm.ReadTimePro(TimeStr) then
+      Text := TimeStr;
+  end;
+end;
+
+procedure TAttendanceReportForm.DateEdit1Exit(Sender: TObject);
+begin
+ if Not CheckDate(DateEdit1.Text) then
+    DateEdit1.SetFocus;
+end;
+
+procedure TAttendanceReportForm.DateEdit2Exit(Sender: TObject);
+begin
+ if Not CheckDate(DateEdit2.Text) then
+    DateEdit2.SetFocus;
+end;
+
+procedure TAttendanceReportForm.DateEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if key = VK_RETURN then TimeEdit1.SetFocus;
+end;
+
+procedure TAttendanceReportForm.TimeEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then DateEdit2.SetFocus;
+end;
+
+procedure TAttendanceReportForm.DateEdit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then TimeEdit2.setFocus;
+end;
+
+procedure TAttendanceReportForm.TimeEdit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+ if Key = VK_RETURN then SearchButton.SetFocus;
+end;
+
+procedure TAttendanceReportForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ SummaryQuery.Close;
+ DetailQuery.close;
+ Action := caFree;
+ AttendanceReportForm := NIL;
+end;
+
+procedure TAttendanceReportForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if key = Chr(27) then Close;
+end;
+
+procedure TAttendanceReportForm.FormShow(Sender: TObject);
+begin
+ Width := ControlPanel.Width + 28;
+ Height := ExitButton.Top + 86;
+ Top := (MainForm.ClientHeight - Height - MainForm.bsSkinMainMenuBar.Height) div 2;
+ Left := (MainForm.ClientWidth - Width) div 2 ;
+ EditButton.Enabled := EditAttendanceRecord;
+ DeleteButton.Enabled := EditAttendanceRecord;
+ DateEdit1.Text := FormatDateTime('dd/mm/yyyy', Date);
+ DateEdit2.Text := FormatDateTime('dd/mm/yyyy', Date);
+ TimeEdit1.Text := '00:00';
+ TimeEdit2.Text := '23:59';
+ SummaryQueryWage.DisplayFormat := sCurrency + '0.#0';
+end;
+
+procedure TAttendanceReportForm.AttendanceReportPro;
+begin
+ if AttendanceReportForm = NIL then
+    AttendanceReportForm := TAttendanceReportForm.Create(Self)
+   else
+    begin
+      bsBusinessSkinForm.WindowState := wsNormal;
+      AttendanceReportForm.Show;
+    end;  
+end;
+
+end.

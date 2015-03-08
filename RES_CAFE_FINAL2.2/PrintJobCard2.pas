@@ -1,0 +1,861 @@
+unit PrintJobCard2;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  DB, UtilUnit, ADODB, Variants;
+                                          
+type
+  BuffType = Record
+   Qty: double;
+   Category, Description1, Description2, SpecialOrder, Ingredients: string;
+   Seat, IDNo, JobListColor: integer;
+   Instruction: boolean;
+   Price, DiscountRate: double;
+  end;
+  TPrintJobListForm2 = class(TDataModule)
+    Query: TADOQuery;
+    InstructionQuery: TADOQuery;
+    procedure InitBuff;
+    function  FindIDNo(IDNo: integer): integer;
+    function  FindLinePosition(IDNo: integer): integer;
+    procedure InsertLine(RecordNo: integer);
+    function  PostDataToBuff: integer;
+    procedure OpenQuery(SQLStr: String);
+    procedure OpenInstructionQuery(SQLStr: String);
+    procedure PrintConfirmedOrder;
+    procedure PrintUnConfirmedOrder;
+    procedure PrintJobListPro;
+    procedure PrintOutPro(PrinterPort: integer);
+    procedure PrintJobList(OrderNo, IDStr: string; PrintAll, ConfirmedOrder: boolean; PrinterPort: integer);
+  private { Private declarations }
+    OrderNo, IDStr, TableNo, Telephone, ServicePerson, OpName, OrderDate, CustomerName: string;
+    VIPNo, Persons, OrderKindFlag, PrinterPort: Integer;
+    PrintAll, DeliveryFlag, ConfirmedOrder: boolean;
+    DueTime: TDateTime;
+    Buff: array [1..500] of BuffType;
+  public
+    { Public declarations }
+  end;
+
+var
+  PrintJobListForm2: TPrintJobListForm2;
+
+implementation
+
+uses DataUnit, PrintJobListControl;
+
+{$R *.DFM}
+
+procedure TPrintJobListForm2.InitBuff;
+var
+ I: integer;
+begin
+ for I := 1 to 500 do
+  begin
+   Buff[I].Qty := 0;
+   Buff[I].Description1 := '';
+   Buff[I].Description2 := '';
+   Buff[I].Seat := 0;
+   Buff[I].IDNo := 0;
+   Buff[I].JobListColor := 0;
+   Buff[I].Category := '';
+   Buff[I].Instruction := False;
+   Buff[I].Price := 0;
+   Buff[I].DiscountRate := 0;
+   Buff[I].SpecialOrder := '';
+   Buff[I].Ingredients := '';
+  end;
+end;
+
+procedure TPrintJobListForm2.InsertLine(RecordNo: integer);
+var
+ I: integer;
+begin
+ for I := 500 Downto RecordNo + 1 do Buff[I] := Buff[I - 1];
+ with Buff[RecordNo] do
+  begin
+   Qty := 0;
+   Description1 := '';
+   Description2 := '';
+   Category := '';
+   Seat := 0;
+   IDNo := 0;
+   JobListColor := 0;
+   Instruction := False;
+   Price := 0;
+   DiscountRate := 0;
+   SpecialOrder := '';
+   Ingredients := '';
+  end;
+end;
+
+function TPrintJobListForm2.FindIDNo(IDNo: integer): integer;
+var
+ I: integer;
+begin
+ I := 1;
+ while (I <= 500) and (IDNo <> Buff[I].IDNo) do
+  I := I + 1;
+ if I < 500 then Result := I else Result := -1;
+end;
+
+function TPrintJobListForm2.FindLinePosition(IDNo: integer): integer;
+var
+ I: integer;
+begin
+ I := 1;
+ while (I <= 500) and (IDNo > Buff[I].IDNo) do
+  I := I + 1;
+ if (I = 1) or ((I > 1) and (I <= 500) and (IDNo < Buff[I].IDNo) and (IDNo > Buff[I - 1].IDNo) and
+    (Buff[I - 1].Description1 <> '----') and (Buff[I].Description1 <> '----')) then
+    Result := I - 1
+   else
+    Result := -1;
+end;
+
+function TPrintJobListForm2.PostDataToBuff: integer;
+var
+ I, K, IDNo: integer;
+ Description1, Description2, FieldName: string;
+begin
+ InitBuff; I := 0;
+ with Query do
+  begin
+   First;
+   while Not EOF do
+    begin
+     Description1 := FieldByName('Description1').AsString;
+     Description2 := FieldByName('Description2').AsString;
+     if FieldByName('Multiple').AsBoolean then
+        begin
+         FieldName := GenerateSubDescriptionFieldName(FieldByName('PriceSelect').AsInteger);
+         if FieldByName(FieldName).AsString <> '' then
+            begin
+             if Not FieldByName('SubDescriptionSwap').AsBoolean then
+                Description1 := Description1 + '/' + FieldByName(FieldName).AsString
+               else
+                Description1 := FieldByName(FieldName).AsString + '/' + Description1;
+             if Description2 <> '' then
+                begin
+                 if Not FieldByName('SubDescriptionSwap').AsBoolean then
+                    Description2 := Description2 + '/' + FieldByName(FieldName).AsString
+                   else
+                    Description2 := FieldByName(FieldName).AsString + '/' + Description2;
+                end;
+            end;
+        end;
+     I := I + 1;
+     Buff[I].Qty := FieldByName('Qty').AsFloat;
+     Buff[I].Description1 := Description1;
+     Buff[I].Description2 := Description2;
+     Buff[I].Seat := FieldByName('Seat').AsInteger;
+     Buff[I].IDNo := FieldByName('IDNo').AsInteger;
+     Buff[I].JobListColor := FieldByName('JobListColor').AsInteger;
+     Buff[I].Instruction := False;
+     Buff[I].Price := FieldByName('Price').AsFloat;
+     Buff[I].DiscountRate := FieldByName('Discount').AsFloat;
+     Buff[I].SpecialOrder := FieldByName('SpecialOrder').AsString;
+     Buff[I].Ingredients := FieldByName('Ingredients').AsString;
+     Next;
+    end;
+   Close;
+  end;
+ with InstructionQuery do
+  begin
+   First;
+   while Not EOF do
+    begin
+     if FieldByName('ItemCode').AsString = '----' then
+        begin
+         IDNo := FieldByName('IDNo').AsInteger;
+         K := FindLinePosition(IDNo);
+         if K >= 0 then
+            begin
+             InsertLine(K + 1);
+             Buff[K + 1].Description1 := '----';
+             Buff[K + 1].IDNo := FieldByName('IDNo').AsInteger;
+             I := I + 1;
+            end
+        end
+       else
+        begin
+         Description1 := FieldByName('Description1').AsString;
+         Description2 := FieldByName('Description2').AsString;
+         if FieldByName('Multiple').AsBoolean then
+            begin
+             FieldName := GenerateSubDescriptionFieldName(FieldByName('PriceSelect').AsInteger);
+             if FieldByName(FieldName).AsString <> '' then
+                begin
+                 Description1 := Description1 + '/' + FieldByName(FieldName).AsString;
+                 Description2 := Description2 + '/' + FieldByName(FieldName).AsString;
+                end;
+            end;
+         case FieldByName('Condition').AsInteger of
+          1: Description1 := '* ' + Description1;
+          2: Description1 := '[+] ' + Description1;
+          3: Description1 := '[-] ' + Description1;
+          4: Description1 := '[++] ' + Description1;
+          5: Description1 := '[L] ' + Description1;
+         end;
+         if Description2 <> '' then
+            case FieldByName('Condition').AsInteger of
+             1: Description2 := '* ' + Description2;
+             2: Description2 := '[+] ' + Description2;
+             3: Description2 := '[-] ' + Description2;
+             4: Description2 := '[++] ' + Description2;
+             5: Description2 := '[L] ' + Description2;
+            end;
+         IDNo := FieldByName('IDNo').AsInteger - 1;
+         K := FindIDNo(IDNo);
+         if K > 0 then
+            begin
+             InsertLine(K + 1);
+             Buff[K + 1].Qty := FieldByName('Qty').AsFloat;
+             Buff[K + 1].Description1 := Description1;
+             Buff[K + 1].Description2 := Description2;
+             Buff[K + 1].Seat := FieldByName('Seat').AsInteger;
+             Buff[K + 1].IDNo := FieldByName('IDNo').AsInteger;
+             Buff[K + 1].JobListColor := FieldByName('JobListColor').AsInteger;
+             Buff[K + 1].Instruction := True;
+             Buff[K + 1].DiscountRate := FieldByName('Discount').AsFloat;
+             Buff[K + 1].SpecialOrder := FieldByName('SpecialOrder').AsString;
+             Buff[K + 1].Instruction := True;
+             Buff[K + 1].Ingredients := '';
+             I := I + 1;
+            end;
+        end;
+     Next;
+    end;
+  end;
+ Result := I;
+end;
+
+procedure TPrintJobListForm2.OpenQuery(SQLStr: String);
+begin
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TPrintJobListForm2.OpenInstructionQuery(SQLStr: String);
+begin
+ Screen.Cursor := crHourGlass;
+ with InstructionQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure TPrintJobListForm2.PrintOutPro(PrinterPort: integer);
+var
+ PrintStr, Description, StrTemp, LineStr: string;
+ I, CharCount, PaperWidth: integer;
+begin
+ if String(FVar.POSPrinter[PrinterPort].Name) = 'N/A' then Exit;
+ PaperWidth := 20;
+ LineStr := '';
+ for I := 1 to PaperWidth do LineStr := LineStr + ' ';
+ DataForm.OpenPrinterPort(PrinterPort);
+ for I := 1 to 500 do
+  if Buff[I].IDNo > 0 then
+     begin
+      if Buff[I].Description1 = '----' then
+         begin
+          DataForm.FeedsPaperLines;
+          if JobListFontSize = 0 then DataForm.SetBlackFontB else DataForm.SetBlackFontC;
+          if PrintAll then DataForm.OutPutToPrinter('        COPY        ');
+          if ConfirmedOrder then
+             begin
+             DataForm.SetBlackFontC;
+             if Not OnlyPrintLastTwoDigitalOrderNo then
+              PrintStr :='       No.' + Copy(OrderNo, 7, 4)
+             else
+              PrintStr := '     No.' + Copy(OrderNo, 9, 2);
+             DataForm.OutPutToPrinter(PrintStr);
+             DataForm.OutPutToPrinter(' ');
+             DataForm.SetBlackFontA;
+              if OrderKindFlag = sTableOrder then
+                 begin
+                  if PrintOrderNoOnJobList then
+                     PrintStr := 'No: ' + Copy(OrderNo, 7, 4) + ' Table: ' + TableNo
+                    else
+                     PrintStr := 'Table: ' + TableNo;
+                  DataForm.OutPutToPrinter(PrintStr);
+                  if CustomerName <> '' then
+                        begin
+                         PrintStr := '#' + CustomerName;
+                         DataForm.OutPutToPrinter(PrintStr);
+                        end;
+                 end
+                else
+
+                 if OrderKindFlag = sQUICKSALE then
+                    begin
+                     PrintStr := 'Takeaway';
+                     
+
+                     DataForm.SetRedFontC;
+                     DataForm.OutPutToPrinter(PrintStr);
+                     if CustomerName <> '' then
+                        begin
+                         PrintStr := '#' + CustomerName;
+                         DataForm.OutPutToPrinter(PrintStr);
+                        end;
+                     {if PrintOrderNoOnJobList then
+                        begin
+                         PrintStr := 'Order No. ' + Copy(OrderNo, 7, 4);
+                         DataForm.OutPutToPrinter(PrintStr);
+                        end;  }
+                    end
+                   else
+                    begin
+                     if DeliveryFlag then
+                        PrintStr := 'Phone Order/Delivery'
+                       else
+                        if VIPNo > 0 then
+                           PrintStr := 'Phone Order/Pick Up'
+                          else
+                           PrintStr := 'Take Away';
+                     DataForm.OutPutToPrinter(PrintStr);
+                     if PrintOrderNoOnJobList then
+                        begin
+                         PrintStr := 'Order No. ' + Copy(OrderNo, 7, 4);
+                         DataForm.OutPutToPrinter(PrintStr);
+                        end;
+                    end
+             end
+            else
+             begin
+              PrintStr := 'Hold Order';
+              DataForm.OutPutToPrinter(PrintStr);
+              PrintStr := 'Date: ' + OrderDate;
+              DataForm.OutPutToPrinter(PrintStr);
+              if CustomerName <> '' then
+                 begin
+                  PrintStr :='#' + CustomerName;
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end;
+              if Telephone <> '' then
+                 DataForm.OutPutToPrinter('Phone: ' + Telephone);
+             end;
+          DataForm.OutPutToPrinter(LineStr);
+          DataForm.OutPutToPrinter('******* Hold *******') ;
+          DataForm.OutPutToPrinter(LineStr);
+          DataForm.OutPutToPrinter(' ');
+          DataForm.OutPutToPrinter(' ');
+          DataForm.CutPaper;
+         end
+        else
+         begin
+          if Not Buff[I].Instruction then
+             begin
+              DataForm.FeedsPaperLines;
+              if JobListFontSize = 0 then
+                DataForm.SetRedFontB
+              else DataForm.SetRedFontC;
+              if PrintAll then DataForm.OutPutToPrinter('        COPY        ');
+              if JobListFontSize = 0 then DataForm.SetBlackFontB else DataForm.SetBlackFontC;
+              if ConfirmedOrder then
+                 begin
+                 DataForm.SetBlackFontC;
+                 if PrintOrderNoOnJobList then
+                    begin
+                    if Not OnlyPrintLastTwoDigitalOrderNo then
+                       PrintStr :='       No.' + Copy(OrderNo, 7, 4)
+                    else
+                    PrintStr := '     No.' + Copy(OrderNo, 9, 2);
+                 end;
+
+
+                 DataForm.OutPutToPrinter(PrintStr);
+                 DataForm.OutPutToPrinter(' ');
+                 //DataForm.SetBlackFontA;
+                  if OrderKindFlag = sTableOrder then
+                     begin
+                      if PrintOrderNoOnJobList then
+                         begin
+                          if Not OnlyPrintLastTwoDigitalOrderNo then
+                             PrintStr :='Table: ' + TableNo
+                            else
+                             PrintStr := 'Table: ' + TableNo
+                         end
+                        else
+                          PrintStr := 'Table: ' + TableNo;
+                      DataForm.SetBlackFontC;
+                      DataForm.OutPutToPrinter(PrintStr);
+                      if CustomerName <> '' then
+                        begin
+                         PrintStr := '#' + CustomerName;
+                         DataForm.OutPutToPrinter(PrintStr);
+                        end;
+                     end
+                    else
+                     if OrderKindFlag = sQUICKSALE then
+                        begin
+                         PrintStr := 'Takeaway ';
+                         DataForm.SetRedFontC;
+                         DataForm.OutPutToPrinter(PrintStr);
+                         DataForm.SetBlackFontC;
+                         if CustomerName <> '' then
+                            begin
+                             PrintStr :='#' + CustomerName;
+                             DataForm.OutPutToPrinter(PrintStr);
+                            end;
+                         {if PrintOrderNoOnJobList then
+                            begin
+                             if Not OnlyPrintLastTwoDigitalOrderNo then
+                                PrintStr := 'Order No. ' + Copy(OrderNo, 7, 4)
+                               else
+                                PrintStr := 'Order No. ' + Copy(OrderNo, 9, 2);
+                             DataForm.OutPutToPrinter(PrintStr);
+                            end;  }
+
+                        end
+                       else
+                        begin
+                         if DeliveryFlag then
+                            PrintStr := 'Phone Order/Delivery'
+                           else
+                            if VIPNo > 0 then
+                               PrintStr := 'Phone Order/Pick Up'
+                              else
+                               PrintStr := 'Takeaway';
+                         DataForm.SetRedFontC;
+                         DataForm.OutPutToPrinter(PrintStr);
+                         if PrintOrderNoOnJobList then
+                            begin
+                             if Not OnlyPrintLastTwoDigitalOrderNo then
+                                PrintStr := 'Order No. ' + Copy(OrderNo, 7, 4)
+                               else
+                                PrintStr := 'Order No. ' + Copy(OrderNo, 9, 2);
+                             DataForm.OutPutToPrinter(PrintStr);
+                            end;
+                        end
+                 end
+                else
+                 begin
+                  PrintStr := 'Hold Order';
+                  DataForm.OutPutToPrinter(PrintStr);
+                  PrintStr := 'Date: ' + OrderDate;
+                  DataForm.OutPutToPrinter(PrintStr);
+                  if CustomerName <> '' then
+                     begin
+                      PrintStr := '#' + CustomerName;
+                      DataForm.OutPutToPrinter(PrintStr);
+                     end;
+                  if Telephone <> '' then
+                     DataForm.OutPutToPrinter('Phone: ' + Telephone);
+                 end;
+              if PrintServiceOnJobList then
+                 begin
+                  PrintStr := 'Service:  ' + Format('%s', [ServicePerson]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end;
+              if DueTime <> 0 then
+                 begin
+                  if JobListFontSize = 0 then DataForm.SetRedFontB else DataForm.SetRedFontC;
+                  PrintStr := 'Due Time: ' + FormatDateTime('hh:mm', DueTime);
+                  DataForm.OutPutToPrinter(PrintStr);
+                  if JobListFontSize = 0 then DataForm.SetBlackFontB else DataForm.SetBlackFontC;
+                 end;
+              DataForm.OutPutToPrinter(LineStr);
+             end;
+          if (PrintCategoryColor = 1) and ((Buff[I].Qty < 0) or (Buff[I].JobListColor = 1)) then
+             begin
+              if JobListFontSize = 0 then DataForm.SetRedFontB else DataForm.SetRedFontC;
+             end
+            else
+             begin
+              if JobListFontSize = 0 then DataForm.SetBlackFontB else DataForm.SetBlackFontC;
+             end;
+          if (PrintJobListDescription <> 2) or (Buff[I].Description2 = '') then
+             Description := Buff[I].Description1
+            else
+             Description := Buff[I].Description2;
+          if Not Buff[I].Instruction then
+             begin
+              if PrintPriceOnJobList then
+                 begin
+                  if ABS(Buff[I].Qty) > 0 then
+                     begin
+                      PrintStr := Format('%s X ', [FloatToStr(Buff[I].Qty)]);
+                      if (ABS(Buff[I].Price) > 0) then
+                         PrintStr := PrintStr + Format('$%4.2f', [Buff[I].Price * (1 - Buff[I].DiscountRate / 100)]);
+                      PrintStr := Format('%-20s', [PrintStr]);
+                      DataForm.OutPutToPrinter(PrintStr);
+                     end;
+                  CharCount := PaperWidth;
+                  StrTemp := Copy(Description, 1, CharCount);
+                  PrintStr := Format('%s', [StrTemp]);
+                  PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end
+                else
+                 begin
+                  if ABS(Buff[I].Qty) > 0.01 then
+                     PrintStr := Format('%s  ', [FloatToStr(Buff[I].Qty)])
+                    else
+                     PrintStr := '';
+                  CharCount := PaperWidth - Length(PrintStr);
+                  StrTemp := Copy(Description, 1, CharCount);
+                  PrintStr := PrintStr + Format('%s', [StrTemp]);
+                  PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end
+             end
+            else
+             begin
+              if PrintPriceOnJobList then
+                 begin
+                  if (ABS(Buff[I].Qty) > 0) and (ABS(Buff[I].Price) > 0) then
+                     begin
+                      PrintStr := Format('%s X ', [FloatToStr(Buff[I].Qty)]);
+                      PrintStr := PrintStr + Format('$%4.2f', [Buff[I].Price * (1 - Buff[I].DiscountRate / 100)]);
+                      PrintStr := Format('%-20s', [PrintStr]);
+                      DataForm.OutPutToPrinter(PrintStr);
+                     end;
+                  CharCount := PaperWidth;
+                  StrTemp := Copy(Description, 1, CharCount);
+                  PrintStr := Format('%s', [StrTemp]);
+                  PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end
+                else
+                 begin
+                  if (ABS(Buff[I].Qty) <> 0) and (ABS(Buff[I].Qty) <> 1) then
+                     PrintStr := Format('%s  ', [FloatToStr(Buff[I].Qty)])
+                    else
+                     PrintStr := '';
+                  CharCount := PaperWidth - Length(PrintStr) - 3;
+                  StrTemp := Copy(Description, 1, CharCount);
+                  PrintStr := '   ' + PrintStr + Format('%s', [StrTemp]);
+                  PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end;
+             end;
+          while Length(Description) > CharCount do
+           begin
+            if Not Buff[I].Instruction then
+               begin
+                StrTemp := Copy(Description, CharCount + 1, PaperWidth);
+                CharCount := CharCount + PaperWidth;
+                PrintStr := Format('%s', [StrTemp]);
+                PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                DataForm.OutPutToPrinter(PrintStr);
+               end
+              else
+               begin
+                StrTemp := Copy(Description, CharCount + 1, PaperWidth - 3);
+                CharCount := CharCount + PaperWidth - 3;
+                PrintStr := Format('   %s', [StrTemp]);
+                PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                DataForm.OutPutToPrinter(PrintStr);
+               end
+           end;
+          if (PrintJobListDescription = 0) and (Buff[I].Description1 <> Buff[I].Description2) and
+             (Buff[I].Description2 <> '') and (FVar.Thermal[CurrentPrinterIndex] = 0) then
+             begin
+              CharCount := 0;
+              Description := Buff[I].Description2;
+              if Description <> '' then
+                 while Length(Description) > CharCount do
+                  begin
+                   if Not Buff[I].Instruction then
+                      begin
+                       StrTemp := Copy(Description, CharCount + 1, PaperWidth);
+                       CharCount := CharCount + PaperWidth;
+                       PrintStr := Format('%s', [StrTemp]);
+                       PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                       DataForm.OutPutToPrinter(PrintStr);
+                      end
+                    else
+                     begin
+                      StrTemp := Copy(Description, CharCount + 1, PaperWidth - 3);
+                      CharCount := CharCount + PaperWidth - 3;
+                      PrintStr := Format('   %s', [StrTemp]);
+                      PrintStr := Format('%-' + IntToStr(PaperWidth) + 's', [PrintStr]);
+                      DataForm.OutPutToPrinter(PrintStr);
+                     end
+                  end;
+             end;
+          if JobListFontSize = 0 then DataForm.SetBlackFontB else DataForm.SetBlackFontC;
+          if PrintIngredientsOnJobList and (Buff[I].Ingredients <> '') then
+             begin
+              CharCount := 1;
+              Description := Buff[I].Ingredients;
+              StrTemp := '';
+              while Length(Description) >= CharCount do
+               begin
+                if (Description[CharCount] = Chr(13)) and
+                   (Description[CharCount + 1] = Chr(10)) then
+                   begin
+                    if StrTemp <> '' then
+                       begin
+                        PrintStr := Format('   %s', [StrTemp]);
+                        DataForm.OutPutToPrinter(PrintStr);
+                       end;
+                    StrTemp := '';
+                    CharCount := CharCount + 2;
+                   end
+                  else
+                   begin
+                    StrTemp := StrTemp + Description[CharCount];
+                    Inc(CharCount);
+                   end;
+               end;
+              if StrTemp <> '' then
+                 begin
+                  PrintStr := Format('   %s', [StrTemp]);
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end;
+             end;
+          if Buff[I].SpecialOrder <> '' then
+             begin
+              CharCount := 0;
+              Description := Buff[I].SpecialOrder;
+              while Length(Description) > CharCount do
+               begin
+                StrTemp := Copy(Description, CharCount + 1, PaperWidth - 3);
+                CharCount := CharCount + PaperWidth - 3;
+                PrintStr := Format('   %s', [StrTemp]);
+                DataForm.OutPutToPrinter(PrintStr);
+               end
+             end;
+          if Buff[I].Seat > 0 then
+             begin
+              PrintStr := Format('      Seat No: %1d', [Buff[I].Seat]);
+              DataForm.OutPutToPrinter(PrintStr);
+             end;
+          if (I = 500) or (Buff[I + 1].IDNo = 0) or Not Buff[I + 1].Instruction then
+             begin
+              DataForm.OutPutToPrinter(LineStr);
+              if PrintOpNameOnJobList then
+                 begin
+                  PrintStr := 'Served By: ' + OpName;
+                  DataForm.SetBlackFontA;
+                  DataForm.OutPutToPrinter(PrintStr);
+                 end;
+              DataForm.SetBlackFontA;
+              PrintStr := 'Printed Time: ' + FormatDateTime('dd-mm-yyyy  hh:mm', Date + Time);
+              DataForm.OutPutToPrinter(PrintStr);
+              DataForm.SetBlackFontB;
+              DataForm.OutPutToPrinter(' ');
+              DataForm.OutPutToPrinter(' ');
+              DataForm.CutPaper;
+             end;
+         end;
+     end;
+ DataForm.ClosePrinterPort;
+end;
+
+procedure TPrintJobListForm2.PrintConfirmedOrder;
+var
+ SQLStr: string;
+begin
+ with PrintJObListControlForm.Query do
+  begin
+   TableNo := DeleteSpace(FieldByName('TableNo').AsString);
+   CustomerName := FieldByName('CustomerName').AsString;
+   DeliveryFlag := FieldByName('Delivery').AsBoolean;
+   Persons := FieldByName('Persons').AsInteger;
+   ServicePerson := FieldByName('ServicePerson').AsString;
+   OrderDate := FormatDateTime('dd/mm/yyyy', FieldByName('OrderDate').AsDateTime);
+   if Not VarIsNull(FieldByName('DueTime').AsDateTime) then
+      DueTime := FieldByName('DueTime').AsDateTime
+     else
+      DueTime := 0;
+   OrderKindFlag := FieldByName('BillKind').AsInteger;
+   OpName := FieldByName('OpName').AsString;
+   VIPNo := FieldByName('VIPNo').AsInteger;
+   Telephone := '';
+  end;
+
+ if PrintAll then
+    SQLStr := 'Select OrderI.ItemCode, Description1, Description2, Condition, Qty, ' +
+              'OrderI.Price, PriceSelect, SubDescription, SubDescription1, ' +
+              'SubDescription2, SubDescription3, Seat, IDNo, JobListColor, ' +
+              'OrderI.Discount, VoidReason, SpecialOrder, Ingredients, Multiple ' +
+              'From OrderI, MenuItem Left Join IngredientsTable ' +
+              'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+              'Where MenuItem.ItemCode=OrderI.ItemCode and ' +
+              'OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+              ' and Condition > 0' +
+              ' Union All ' +
+              'Select OrderI.ItemCode, Null, Null, 0, 0, 0, 0, Null, Null, Null, ' +
+              'Null, 0, IDNo, 0, 0, Null, Null, Null, CAST(0 As Bit) ' +
+              'From OrderI ' +
+              'Where OrderI.ItemCode=' + Chr(39) + '----' + Chr(39) +
+              ' and OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+              ' Order By IDNo'
+   else
+    SQLStr := 'SELECT OrderI.ItemCode, Description1, Description2, Condition, Qty, ' +
+              'OrderI.Price, PriceSelect, SubDescription, SubDescription1, ' +
+              'SubDescription2, SubDescription3, Seat, IDNo, JobListColor, ' +
+              'OrderI.Discount, VoidReason, SpecialOrder, Ingredients, Multiple ' +
+              'From OrderI, MenuItem Left Join IngredientsTable ' +
+              'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+              'WHERE MenuItem.ItemCode=OrderI.ItemCode and ' +
+              'OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+              ' AND Condition > 0 and PrintFlag = 0 ' +
+              ' UNION ALL ' +
+              'Select OrderI.ItemCode, Null, Null, 0, 0, 0, 0, Null, Null, Null, ' +
+              'Null, 0, IDNo, 0, 0, Null, Null, NULL, CAST(0 As Bit) ' +
+              'FROM OrderI ' +
+              'WHERE OrderI.ItemCode=' + Chr(39) + '----' + Chr(39) +
+              ' AND OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+              ' and PrintFlag = 0 ORDER BY IDNo';
+ OpenInstructionQuery(SQLStr);
+ if PrintAll then
+    begin
+     SQLStr := 'Select OrderI.ItemCode, Description1, Description2, ' +
+               'Condition, Qty, OrderI.Price, PriceSelect, ' +
+               'SubDescription, SubDescription1, SubDescription2, ' +
+               'SubDescription3, Seat, IDNo, JobListColor, OrderI.Discount, ' +
+               'SubDescriptionSwap, VoidReason, SpecialOrder, Ingredients, ' +
+               'Multiple ' +
+               'From OrderI, MenuItem Left Join IngredientsTable ' +
+               'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+               'Where MenuItem.ItemCode=OrderI.ItemCode and ' +
+               'OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+               ' and (PrinterPort=' + IntToStr(PrinterPort) +
+               ' Or PrinterPort1=' + IntToStr(PrinterPort) +
+               ' or PrinterPort2=' + IntToStr(PrinterPort) +
+               ' or PrinterPort3=' + IntToStr(PrinterPort) +
+               ') and Condition = 0 ';
+     if Not PrintZeroQtyItemsOnJobList then SQLStr := SQLStr + ' and ABS(Qty) >= 0.01 ';
+    end
+   else
+    begin
+     SQLStr := 'Select OrderI.ItemCode, Description1, Description2, ' +
+               'Condition, Qty, OrderI.Price, PriceSelect, ' +
+               'SubDescription, SubDescription1, SubDescription2, ' +
+               'SubDescription3, Seat, IDNo, JobListColor, OrderI.Discount, ' +
+               'SubDescriptionSwap, VoidReason, SpecialOrder, Ingredients, ' +
+               'Multiple ' +
+               'From OrderI, MenuItem Left Join IngredientsTable ' +
+               'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+               'Where MenuItem.ItemCode=OrderI.ItemCode and Condition=0 and ' +
+               'OrderNo=' + Chr(39) + CheckQuotes(OrderNo) + Chr(39) +
+               ' and (PrinterPort=' + IntToStr(PrinterPort) +
+               ' Or PrinterPort1=' + IntToStr(PrinterPort) +
+               ' or PrinterPort2=' + IntToStr(PrinterPort) +
+               ' or PrinterPort3=' + IntToStr(PrinterPort) + ')';
+     if Not PrintZeroQtyItemsOnJobList then SQLStr := SQLStr + ' and ABS(Qty) >= 0.01 ';
+     if IDStr <> '' then SQLStr := SQLStr + ' and IDNo In (' + IDStr + ')'
+       else
+        SQLStr := SQLStr + ' and PrintFlag = 0';
+    end;
+ SQLStr := SQLStr +  ' Order By IDNo';
+ OpenQuery(SQLStr);
+ if Query.Active and (Query.RecordCount > 0) and (PostDataToBuff > 0) then
+    PrintOutPro(PrinterPort);
+ InstructionQuery.Close;
+end;
+
+procedure TPrintJobListForm2.PrintUnConfirmedOrder;
+var
+ SQLStr: string;
+begin
+ with PrintJObListControlForm.Query do
+  begin
+   TableNo := '';
+   CustomerName := FieldByName('CustomerName').AsString;
+   Persons := 0;
+   ServicePerson := FieldByName('OpName').AsString;
+   OrderDate := FormatDateTime('dd/mm/yyyy', FieldByName('HoldDate').AsDateTime);
+   if Not VarIsNull(FieldByName('DueTime').AsDateTime) then
+      DueTime := FieldByName('DueTime').AsDateTime
+     else
+      DueTime := 0;
+   OpName := FieldByName('OpName').AsString;
+   Telephone := FieldByName('Telephone').AsString;
+  end;
+
+ SQLStr := 'Select HoldItem.ItemCode, Description1, Description2, Condition, Qty, ' +
+           'HoldItem.Price, PriceSelect, SubDescription, SubDescription1, ' +
+           'SubDescription2, SubDescription3, 0 As Seat, ID As IDNo, JobListColor, ' +
+           'HoldItem.Discount, Null As VoidReason, SpecialOrder, Ingredients, Multiple ' +
+           'From HoldItem, MenuItem Left Join IngredientsTable ' +
+           'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+           'Where MenuItem.ItemCode=HoldItem.ItemCode and ' +
+           'HoldNo=' + OrderNo + ' and Condition > 0 Order By ID';
+ OpenInstructionQuery(SQLStr);
+ if PrintAll then
+    SQLStr := 'Select HoldItem.ItemCode, Description1, Description2, Condition, Qty, ' +
+              'HoldItem.Price, PriceSelect, SubDescription, SubDescription1, ' +
+              'SubDescription2, SubDescription3, 0 As Seat, ID AS IDNo, JobListColor, ' +
+              'HoldItem.Discount, SubDescriptionSwap, Null As VoidReason, SpecialOrder, ' +
+              'Ingredients, Multiple ' +
+              'From HoldItem, MenuItem Left Join IngredientsTable ' +
+              'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+              'Where MenuItem.ItemCode=HoldItem.ItemCode and ' +
+              'HoldNo=' + OrderNo +
+              ' and (PrinterPort=' + IntToStr(PrinterPort) +
+              ' Or PrinterPort1=' + IntToStr(PrinterPort) +
+              ' or PrinterPort2=' + IntToStr(PrinterPort) +
+              ' or PrinterPort3=' + IntToStr(PrinterPort) +
+              ') and Condition = 0 '
+  else
+   SQLStr := 'Select HoldItem.ItemCode, Description1, Description2, Condition, Qty, ' +
+             'HoldItem.Price, PriceSelect, SubDescription, SubDescription1, ' +
+             'SubDescription2, SubDescription3, 0 As Seat, ID AS IDNo, JobListColor, ' +
+             'HoldItem.Discount, SubDescriptionSwap, Null As VoidReason, SpecialOrder, ' +
+             'Ingredients, Multiple ' +
+             'From HoldItem, MenuItem Left Join IngredientsTable ' +
+             'On MenuItem.ItemCode=IngredientsTable.ItemCode ' +
+             'Where MenuItem.ItemCode=HoldItem.ItemCode and ' +
+             'HoldNo=' + OrderNo +
+             ' and (PrinterPort=' + IntToStr(PrinterPort) +
+             ' Or PrinterPort1=' + IntToStr(PrinterPort) +
+             ' or PrinterPort2=' + IntToStr(PrinterPort) +
+             ' or PrinterPort3=' + IntToStr(PrinterPort) +
+             ') and Condition = 0 and Printed = 0 ';
+ if Not PrintZeroQtyItemsOnJobList then SQLStr := SQLStr + ' and ABS(Qty) >= 0.01 ';
+ SQLStr := SQLStr + ' Order By ID';
+ OpenQuery(SQLStr);
+ if Query.Active and (Query.RecordCount > 0) and (PostDataToBuff > 0) then
+    PrintOutPro(PrinterPort);
+ InstructionQuery.Close;
+end;
+
+procedure TPrintJobListForm2.PrintJobListPro;
+begin
+ if ConfirmedOrder then
+    PrintConfirmedOrder
+   else
+    PrintUnConfirmedOrder;
+end;
+
+procedure TPrintJobListForm2.PrintJobList(OrderNo, IDStr: string; PrintAll, ConfirmedOrder: boolean; PrinterPort: integer);
+begin
+ Application.CreateForm(TPrintJobListForm2, PrintJobListForm2);
+ PrintJobListForm2.PrintAll := PrintAll;
+ PrintJobListForm2.OrderNo := OrderNo;
+ PrintJobListForm2.IDStr := IDStr;
+ PrintJobListForm2.ConfirmedOrder := ConfirmedOrder;
+ PrintJobListForm2.PrinterPort := PrinterPort;
+ PrintJobListForm2.PrintJobListPro;
+ PrintJobListForm2.Free;
+end;
+
+end.

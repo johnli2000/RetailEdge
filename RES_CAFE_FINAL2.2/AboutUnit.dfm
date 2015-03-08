@@ -1,0 +1,593 @@
+object AboutForm: TAboutForm
+  Left = 480
+  Top = 125
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Vii POS Software'
+  ClientHeight = 770
+  ClientWidth = 728
+  Color = clWindow
+  Ctl3D = False
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  KeyPreview = True
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object BackPanel: TbsSkinPanel
+    Left = 0
+    Top = 0
+    Width = 721
+    Height = 761
+    HintImageIndex = 0
+    TabOrder = 0
+    SkinData = MainForm.bsSkinData
+    SkinDataName = 'panel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = False
+    RibbonStyle = False
+    ImagePosition = bsipDefault
+    TransparentMode = False
+    CaptionImageIndex = -1
+    RealHeight = -1
+    AutoEnabledControls = True
+    CheckedMode = False
+    Checked = False
+    DefaultAlignment = taLeftJustify
+    DefaultCaptionHeight = 22
+    BorderStyle = bvFrame
+    CaptionMode = False
+    RollUpMode = False
+    RollUpState = False
+    NumGlyphs = 1
+    Spacing = 2
+    Caption = 'BackPanel'
+    object VersionLabel: TbsSkinStdLabel
+      Left = 54
+      Top = 78
+      Width = 61
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'VersionLabel'
+      Visible = False
+    end
+    object bsSkinStdLabel1: TbsSkinStdLabel
+      Left = 54
+      Top = 94
+      Width = 133
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Retail Edge Systems Pty Ltd'
+    end
+    object bsSkinStdLabel2: TbsSkinStdLabel
+      Left = 54
+      Top = 111
+      Width = 202
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Developed for V POS Restaurant Software'
+    end
+    object WindowsVersionLabel: TbsSkinStdLabel
+      Left = 53
+      Top = 170
+      Width = 105
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'WindowsVersionLabel'
+    end
+    object bsSkinStdLabel3: TbsSkinStdLabel
+      Left = 382
+      Top = 73
+      Width = 109
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Total Physical Memory:'
+    end
+    object bsSkinStdLabel4: TbsSkinStdLabel
+      Left = 382
+      Top = 93
+      Width = 128
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Available Physical Memory:'
+    end
+    object bsSkinStdLabel5: TbsSkinStdLabel
+      Left = 382
+      Top = 113
+      Width = 99
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Total Virtual Memory:'
+    end
+    object bsSkinStdLabel6: TbsSkinStdLabel
+      Left = 382
+      Top = 133
+      Width = 118
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'Available Virtual Memory:'
+    end
+    object bsSkinStdLabel7: TbsSkinStdLabel
+      Left = 382
+      Top = 153
+      Width = 86
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Caption = 'System Resource:'
+    end
+    object TotalPhysicalMemory: TbsSkinStdLabel
+      Left = 568
+      Top = 73
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'TotalPhysicalMemory'
+    end
+    object AvailablePhysicalMemory: TbsSkinStdLabel
+      Left = 568
+      Top = 93
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'AvailablePhysicalMemory'
+    end
+    object TotalVirtualMemory: TbsSkinStdLabel
+      Left = 568
+      Top = 113
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'TotalVirtualMemory'
+    end
+    object AvailableVirtualMemory: TbsSkinStdLabel
+      Left = 568
+      Top = 133
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'AvailableVirtualMemory'
+    end
+    object SystemResource: TbsSkinStdLabel
+      Left = 568
+      Top = 153
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'SystemResource'
+    end
+    object bsSkinStdLabel8: TbsSkinStdLabel
+      Left = 220
+      Top = 5
+      Width = 321
+      Height = 35
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = ANSI_CHARSET
+      DefaultFont.Color = clBlack
+      DefaultFont.Height = -32
+      DefaultFont.Name = 'MS Serif'
+      DefaultFont.Style = [fsBold]
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -32
+      Font.Name = 'MS Serif'
+      Font.Style = [fsBold]
+      Alignment = taCenter
+      Caption = 'Retail Edge Hospitality'
+      ParentFont = False
+    end
+    object ProductID: TbsSkinStdLabel
+      Left = 232
+      Top = 148
+      Width = 100
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'ProductID'
+    end
+    object bsSkinStdLabel9: TbsSkinStdLabel
+      Left = 54
+      Top = 148
+      Width = 80
+      Height = 13
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Registration Key:'
+    end
+    object bsSkinStdLabel10: TbsSkinStdLabel
+      Left = 54
+      Top = 127
+      Width = 138
+      Height = 16
+      EllipsType = bsetNone
+      UseSkinFont = False
+      UseSkinColor = True
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinData = MainForm.bsSkinData
+      SkinDataName = 'stdlabel'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      Caption = 'www.ViiPOS.com.au'
+      ParentFont = False
+    end
+    object bsSkinTextLabel1: TbsSkinTextLabel
+      Left = 40
+      Top = 200
+      Width = 641
+      Height = 481
+      UseSkinFont = True
+      UseSkinColor = True
+      Lines.Strings = (
+        'License Agreement'
+        ''
+        ''
+        
+          'This License Agreement details the policy for license of Retail ' +
+          'Edge POS ("Licensed Software") on the following topics:'
+        ''
+        'Please read the following license carefully, before either'
+        '(i) completing the electronic order or'
+        'download of the Licensed Software from an authorised website, or'
+        
+          '(ii) installing the Licensed Software from media that was delive' +
+          'red after being ordered by alternative order process,'
+        
+          'as applicable. You acknowledge that you have read this License A' +
+          'greement, have understood it,'
+        
+          'and agree to be bound by its terms. If you do not agree to the t' +
+          'erms and conditions of this Agreement,'
+        
+          'exit the Retail Edge POS Software without continuing the process' +
+          '.'
+        ''
+        '1.'
+        
+          'Evaluation License: Retail Edge Systems Pty Ltd grants to you a ' +
+          'non-exclusive, non-transferable,'
+        
+          'Evaluation License for trial and evaluation of the Licensed Soft' +
+          'ware, in binary object code form,'
+        
+          'for a period of Twenty eight (28) days from the date of download' +
+          ' or installation.'
+        
+          'This License begins upon downloading or installing the Licensed ' +
+          'Software'
+        
+          'and ends Twenty eight (28) days thereafter ("Evaluation Period")' +
+          '.'
+        ' '#9' '
+        
+          'If you are not willing to use the Licensed Software, after the E' +
+          'valuation Period,'
+        
+          'delete all the copies installed in your computer with immediate ' +
+          'effect.'
+        
+          'You are forbidden from using the Licensed Software for any other' +
+          ' use or'
+        'otherwise offering it for resale under the terms of this Section'
+        ''
+        ''
+        ''
+        '2.'
+        
+          'Software License: As part of your choosing to license the Licens' +
+          'ed Software,'
+        
+          'Retail Edge Systems Pty Ltd grants you a fee-bearing, non-exclus' +
+          'ive, non-transferable, world-wide license to Use the Licensed So' +
+          'ftware,'
+        
+          'including user documentation that you have downloaded from or re' +
+          'ceived on media provided by'
+        
+          'Retail Edge Systems Pty Ltd, including all updates provided thro' +
+          'ugh the Retail Edge Systems subscribed support services,'
+        
+          'where applicable, provided that such access and Use of the Licen' +
+          'sed Software is in accordance with the Node Locked License'
+        
+          'granted by Retail Edge Systems Pty Ltd. "Use" means storing, loa' +
+          'ding, installing, executing or displaying the Licensed Software.'
+        
+          '"Node Locked License" means that one copy of the Licensed Softwa' +
+          're can be installed only on one machine.'
+        ''
+        
+          'Retail Edge Systems Pty Ltd retains all rights not specifically ' +
+          'granted to you herein.')
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinDataName = 'stdlabel'
+    end
+    object OKButton: TXiButton
+      Left = 580
+      Top = 700
+      Width = 100
+      Height = 40
+      ColorFace = 15987699
+      ColorGrad = 12369084
+      ColorDark = 10987431
+      ColorLight = 16250871
+      ColorBorder = 6447714
+      ColorText = clBlack
+      OverColorFace = 15790320
+      OverColorGrad = 10921638
+      OverColorDark = 10658466
+      OverColorLight = 15658734
+      OverColorBorder = 7697781
+      OverColorText = clBlack
+      DownColorFace = 13290186
+      DownColorGrad = 14342874
+      DownColorDark = 15329769
+      DownColorLight = 8158332
+      DownColorBorder = 5131854
+      DownColorText = clBlack
+      DisabledColorFace = 15658734
+      DisabledColorGrad = clWhite
+      DisabledColorDark = 13816530
+      DisabledColorLight = clWhite
+      DisabledColorBorder = clGray
+      DisabledColorText = clGray
+      ColorFocusRect = 11382189
+      ColorScheme = csNeoSilver
+      Ctl3D = True
+      Layout = blGlyphLeft
+      Spacing = 4
+      TransparentGlyph = True
+      Gradient = True
+      HotTrack = True
+      Caption = 'OK'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      OnClick = OKButtonClick
+    end
+  end
+  object bsBusinessSkinForm: TbsBusinessSkinForm
+    ShowMDIScrollBars = True
+    WindowState = wsNormal
+    QuickButtons = <>
+    QuickButtonsShowHint = False
+    QuickButtonsShowDivider = True
+    ClientInActiveEffect = False
+    ClientInActiveEffectType = bsieSemiTransparent
+    DisableSystemMenu = False
+    AlwaysResize = False
+    PositionInMonitor = bspDefault
+    UseFormCursorInNCArea = False
+    MaxMenuItemsInWindow = 0
+    ClientWidth = 0
+    ClientHeight = 0
+    HideCaptionButtons = False
+    AlwaysShowInTray = False
+    LogoBitMapTransparent = False
+    AlwaysMinimizeToTray = False
+    UseSkinFontInMenu = True
+    UseSkinFontInCaption = True
+    UseSkinSizeInMenu = True
+    ShowIcon = False
+    MaximizeOnFullScreen = False
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    ShowObjectHint = False
+    MenusAlphaBlend = False
+    MenusAlphaBlendAnimation = False
+    MenusAlphaBlendValue = 200
+    DefCaptionFont.Charset = ANSI_CHARSET
+    DefCaptionFont.Color = clBtnText
+    DefCaptionFont.Height = -11
+    DefCaptionFont.Name = 'MS Sans Serif'
+    DefCaptionFont.Style = [fsBold]
+    DefInActiveCaptionFont.Charset = DEFAULT_CHARSET
+    DefInActiveCaptionFont.Color = clBtnShadow
+    DefInActiveCaptionFont.Height = 14
+    DefInActiveCaptionFont.Name = 'Arial'
+    DefInActiveCaptionFont.Style = [fsBold]
+    DefMenuItemHeight = 20
+    DefMenuItemFont.Charset = DEFAULT_CHARSET
+    DefMenuItemFont.Color = clWindowText
+    DefMenuItemFont.Height = 14
+    DefMenuItemFont.Name = 'Arial'
+    DefMenuItemFont.Style = []
+    UseDefaultSysMenu = True
+    SkinData = MainForm.bsSkinData
+    MenusSkinData = MainForm.bsSkinData
+    MinHeight = 0
+    MinWidth = 0
+    MaxHeight = 0
+    MaxWidth = 0
+    Magnetic = True
+    MagneticSize = 5
+    BorderIcons = []
+    Left = 26
+    Top = 8
+  end
+end

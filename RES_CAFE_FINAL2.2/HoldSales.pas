@@ -1,0 +1,452 @@
+unit HoldSales;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Buttons, ExtCtrls, StdCtrls, DB, ADODB, Grids, UtilUnit,
+  bsSkinCtrls, XiButton;
+
+type
+  THoldAdminForm = class(TForm)
+    Query: TADOQuery;
+    DetailQuery: TADOQuery;
+    BackPanel: TbsSkinPanel;
+    StringGrid: TStringGrid;
+    OrderListPanel: TbsSkinPanel;
+    Button1: TXiButton;
+    Button2: TXiButton;
+    Button3: TXiButton;
+    Button4: TXiButton;
+    Button5: TXiButton;
+    Button6: TXiButton;
+    Button7: TXiButton;
+    Button8: TXiButton;
+    Button9: TXiButton;
+    Button10: TXiButton;
+    StringGridPanel: TbsSkinPanel;
+    CallBackButton: TXiButton;
+    CancelButton: TXiButton;
+    PrintJobListButton: TXiButton;
+    PageUpButton: TXiButton;
+    PageDownButton: TXiButton;
+    ExitButton: TXiButton;
+    procedure ButtonClick(Sender: TObject);
+    procedure OpenQuery;
+    procedure OpenDetailQuery(HoldNo: integer);
+    procedure PostData;
+    procedure AssignKeyPad(CurrentPage: integer);
+    procedure PageUpButtonClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure CallBackButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    function  HoldAdminPro(var HoldNo: integer): boolean;
+    procedure CancelButtonClick(Sender: TObject);
+    procedure InitStringGrid;
+    procedure StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure PageDownButtonClick(Sender: TObject);
+    procedure PrintJobListButtonClick(Sender: TObject);
+  private { Private declarations }
+    CurrentPage, RowCount, CurrentPosition: integer;
+    Instruction: array [1..500] of integer;
+    ReturnFlag: boolean;
+    HoldNo: integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  HoldAdminForm: THoldAdminForm;
+
+implementation
+
+uses DataUnit, MainMenu, MessageBox, PrintJobCard, PrintJobCard1,
+     PrintJobCard2, PrintJobCard3, PrintJobCard4, PrintCheckList,
+  PrintJobCard5, PrintJobListControl;
+
+{$R *.dfm}
+
+procedure THoldAdminForm.OpenQuery;
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select HoldNo, HoldDate, CustomerName, Telephone, OpName ' +
+           'From HoldHead Order By HoldDate, HoldNo';
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+   RowCount := RecordCount;
+   CurrentPage := 1;
+   CurrentPosition := 1;
+  end;
+end;
+
+procedure THoldAdminForm.OpenDetailQuery(HoldNo: integer);
+var
+ SQLStr: string;
+begin
+ SQLStr := 'Select Description1, Qty, HoldItem.Price, PriceSelect, Condition, ' +
+           'SubDescription, SubDescription1, SubDescription2, SubDescription3, ' +
+           'Multiple ' +
+           'From HoldItem, MenuItem Where HoldItem.ItemCode=MenuItem.ItemCode and ' +
+           'HoldNo=' + IntToStr(HoldNo) + ' Order By HoldItem.ID';
+ Screen.Cursor := crHourGlass;
+ with DetailQuery do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   try
+    Active := True;
+   finally
+    Screen.Cursor := crDefault;
+   end;
+  end;
+end;
+
+procedure THoldAdminForm.PostData;
+var
+ I: integer;
+ FieldName: string;
+begin
+ I := 1;
+ with DetailQuery do
+  begin
+   if Active and (RecordCount > 0) then
+      while NOT EOF do
+       begin
+        StringGrid.Cells[1, I] := FieldByName('Description1').AsString;
+        if FieldByName('Multiple').AsBoolean then
+           begin
+            FieldName := GenerateSubDescriptionFieldName(FieldByName('PriceSelect').AsInteger);
+            if FieldByName(FieldName).AsString <> '' then
+               StringGrid.Cells[1, I] := StringGrid.Cells[1, I] + ' / ' +
+                                         FieldByName(FieldName).AsString;
+           end;
+        StringGrid.Cells[2, I] := FieldByName('Qty').AsString;
+        StringGrid.Cells[3, I] := FormatCurrency(FieldByName('Price').AsFloat);
+        Instruction[I] := FieldByName('Condition').AsInteger;
+        case Instruction[I] of
+         0: StringGrid.Cells[1, I] := StringGrid.Cells[1, I];
+         1: StringGrid.Cells[1, I] := '[*] ' + StringGrid.Cells[1, I];
+         2: StringGrid.Cells[1, I] := '[A] ' + StringGrid.Cells[1, I];
+         3: StringGrid.Cells[1, I] := '[C] ' + StringGrid.Cells[1, I];
+         4: StringGrid.Cells[1, I] := '[M] ' + StringGrid.Cells[1, I];
+         5: StringGrid.Cells[1, I] := '[L] ' + StringGrid.Cells[1, I];
+        end;
+        Next;
+        Inc(I);
+       end;
+   Close;
+  end;
+end;
+
+procedure THoldAdminForm.ButtonClick(Sender: TObject);
+var
+ I: integer;
+begin
+ with Sender As TXiButton do if Caption = '' then Exit;
+
+ for I := 1 to 10 do
+  with TXiButton(FindComponent('Button' + IntToStr(I))) do
+   ColorScheme := csNeoSilver;
+
+ with Sender As TXiButton do
+  begin
+   ColorScheme := csNeoGrass;
+   CurrentPosition := StrToInt(Copy(Name, 7, 2));
+  end;
+ if (CurrentPage - 1) * 10 + CurrentPosition <= RowCount then
+    begin
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     HoldNo := Query.FieldByName('HoldNo').AsInteger;
+     InitStringGrid;
+     OpenDetailQuery(HoldNo);
+     PostData;
+     StringGrid.SetFocus;
+    end;
+end;
+
+procedure THoldAdminForm.AssignKeyPad(CurrentPage: integer);
+var
+ I: integer;
+begin
+ I := 0;
+ Query.First;
+ Query.MoveBy((CurrentPage - 1) * 10);
+ while Not Query.EOF and (I < 10) do
+  begin
+   I := I + 1;
+   with TXiButton(FindComponent('Button' + IntToStr(I))) do
+    begin
+     Caption := '';
+     if (Query.FieldByName('CustomerName').AsString <> '') or
+        (Query.FieldByName('Telephone').AsString <> '') then
+        begin
+         Caption := Query.FieldByName('OpName').AsString;
+         if Query.FieldByName('Telephone').AsString <> '' then
+            Caption := Caption + ' (' + Query.FieldByName('Telephone').AsString + ')';
+         Caption := Caption + Chr(13) + Chr(10);
+        end;
+     Caption := Caption + FormatDateTime('dd/mm/yyyy hh:mm:ss', Query.FieldByName('HoldDate').AsDateTime);
+                   //'  ' + Query.FieldByName('CustomerName').AsString;
+     if I = CurrentPosition then
+        ColorScheme := csNeoGrass
+       else
+        ColorScheme := csNeoSilver;
+    end;
+   Query.Next;
+  end;
+ while I < 10 do
+  begin
+   I := I + 1;
+   with TXiButton(FindComponent('Button' + IntToStr(I))) do
+    begin
+     Caption := '';
+     ColorScheme := csNeoSilver;
+    end;
+  end;
+end;
+
+procedure THoldAdminForm.PageUpButtonClick(Sender: TObject);
+begin
+ if CurrentPage >= 2 then
+    begin
+     CurrentPage := CurrentPage - 1;
+     CurrentPosition := 1;
+     AssignKeyPad(CurrentPage);
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     HoldNo := Query.FieldByName('HoldNo').AsInteger;
+     InitStringGrid;
+     OpenDetailQuery(HoldNo);
+     PostData;
+     StringGrid.SetFocus;
+    end;
+end;
+
+procedure THoldAdminForm.PageDownButtonClick(Sender: TObject);
+begin
+ if CurrentPage * 10 < RowCount then
+    begin
+     CurrentPage := CurrentPage + 1;
+     CurrentPosition := 1;
+     AssignKeyPad(CurrentPage);
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     HoldNo := Query.FieldByName('HoldNo').AsInteger;
+     InitStringGrid;
+     OpenDetailQuery(HoldNo);
+     PostData;
+     StringGrid.SetFocus;
+    end;
+end;
+
+procedure THoldAdminForm.ExitButtonClick(Sender: TObject);
+begin
+ ReturnFlag := False;
+ Close;
+end;
+
+procedure THoldAdminForm.CallBackButtonClick(Sender: TObject);
+begin
+ if (CurrentPage - 1) * 10 + CurrentPosition <= RowCount then
+    begin
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     HoldNo := Query.FieldByName('HoldNo').AsInteger;
+     ReturnFlag := True;
+     Close;
+    end;
+end;
+
+procedure THoldAdminForm.CancelButtonClick(Sender: TObject);
+var
+ SQLStr: string;
+ Flag: boolean;
+begin
+ Flag := True;
+ if (CurrentPage - 1) * 10 + CurrentPosition > RowCount then Exit;
+ Query.First;
+ Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+ HoldNo := Query.FieldByName('HoldNo').AsInteger;
+ if (HoldNo <= 0) or
+    (MessageBoxForm.MessagePro('Are you sure you want to delete this hold sales?', sConfirmMsg) = mrNo) then
+    Exit;
+ if Not DataForm.BeginTransaction then Exit;
+ try
+  SQLStr := 'Delete From HoldHead Where HoldNo=' + IntToStr(HoldNo);
+  Flag := DataForm.ExecQueryPro(SQLStr);
+  if Flag then
+     begin
+      SQLStr := 'Delete From HoldItem Where HoldNo=' + IntToStr(HoldNo);
+      Flag := DataForm.ExecQueryPro(SQLStr);
+     end;
+ finally
+  if Flag then
+     begin
+      DataForm.CommitTransaction;
+      OpenQuery;
+      AssignKeyPad(1);
+      Query.First;
+      Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+      HoldNo := Query.FieldByName('HoldNo').AsInteger;
+      InitStringGrid;
+      OpenDetailQuery(HoldNo);
+      PostData;
+      StringGrid.SetFocus;
+     end
+    else
+     DataForm.RollBack;
+ end;
+end;
+
+procedure THoldAdminForm.InitStringGrid;
+var
+ I: Integer;
+begin
+ with StringGrid do
+  begin
+    Cells[0, 0] := 'No';
+    Cells[1, 0] := 'Description';
+    Cells[2, 0] := 'Qty';
+    Cells[3, 0] := 'Price';
+    for I := 1 to 500 do
+     begin
+      Cells[0, I] := Format('%1d', [I]);
+      Cells[1, I] := ''; Cells[2, I] := ''; Cells[3, I] := '';
+      Instruction[I] := 0;
+     end;
+  end;
+end;
+
+procedure THoldAdminForm.StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+var
+ X: integer;
+begin
+ X := 0;
+ with Sender As TStringGrid do
+  begin
+   Canvas.Font.Size := 10;
+   Canvas.Font.Style := [];
+   if (ARow > 0) and (ACol > 0) then
+      case ACol of
+        1: begin
+            SetTextAlign(Canvas.Handle, TA_LEFT);
+            if Instruction[ARow] > 1 then
+               begin
+                Canvas.Font.Color := clRed;
+                X := Rect.Left + 12;
+               end
+              else
+               if Instruction[ARow] = 1 then
+                  begin
+                   Canvas.Font.Color := clBlue;
+                   X := Rect.Left + 12;
+                  end
+                 else
+                  begin
+                   X := Rect.Left + 2;
+                   Canvas.Font.Color := clBlack;
+                  end
+           end;
+        2, 3: begin
+            SetTextAlign(Canvas.Handle, TA_RIGHT);
+            X := Rect.Right - 2;
+            Canvas.Font.Color := clBlack;
+           end;
+      end
+     else
+      begin
+       //Canvas.Font.Style := [fsBold];
+       SetTextAlign(Canvas.Handle, TA_CENTER);
+       X := (Rect.Left + Rect.Right) div 2;
+      end;
+   if State = [gdSelected] then Canvas.Font.Color := clWhite;
+   Canvas.TextRect(Rect, X, Rect.Top + 2, Cells[ACol, ARow]);
+ end;
+end;
+
+procedure THoldAdminForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ Query.Close;
+ Action := caFree;
+end;
+
+procedure THoldAdminForm.PrintJobListButtonClick(Sender: TObject);
+var
+ CurrentHoldNo: integer;
+begin
+ if (CurrentPage - 1) * 10 + CurrentPosition <= RowCount then
+    begin
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     CurrentHoldNo := Query.FieldByName('HoldNo').AsInteger;
+     PrintJobListControlForm.PrintJobListControlPro(IntToStr(CurrentHoldNo), '', True, sUnConfirmedOrder);
+     if AutoPrintCheckList then
+        PrintCheckListForm.PrintCheckList(IntToStr(CurrentHoldNo), '', True, sUnConfirmedOrder);
+    end;
+end;
+
+procedure THoldAdminForm.FormShow(Sender: TObject);
+begin
+ CallBackButton.Caption := 'OK';
+ CancelButton.Caption := 'Cancel' + Chr(13) + 'Order';
+ PrintJobListButton.Caption := 'Print' + Chr(13) + 'Job List';
+ PageUpButton.Caption := 'Page' + Chr(13) + 'Up';
+ PageDownButton.Caption := 'Page' + Chr(13) + 'Down';
+ ExitButton.Caption := 'Exit';
+ CancelButton.Enabled := AuthrisedCancelHoldOrder;
+ InitStringGrid;
+ OpenQuery;
+ AssignKeyPad(1);
+ if (CurrentPage - 1) * 10 + CurrentPosition <= RowCount then
+    begin
+     Query.First;
+     Query.MoveBy((CurrentPage - 1) * 10 + CurrentPosition - 1);
+     HoldNo := Query.FieldByName('HoldNo').AsInteger;
+     InitStringGrid;
+     OpenDetailQuery(HoldNo);
+     PostData;
+     StringGrid.SetFocus;
+    end;
+ Top := 0;
+ Left := 0;
+ Height := Screen.Height;
+ Width := Screen.Width;
+ BackPanel.Height := 768;
+ BackPanel.Width := 1024;
+ BackPanel.Left := (Screen.Width - BackPanel.Width) div 2;
+ BackPanel.Top := (Screen.Height - BackPanel.Height) div 2;
+end;
+
+procedure THoldAdminForm.FormResize(Sender: TObject);
+begin
+ BackPanel.Left := (Screen.Width - BackPanel.Width) div 2;
+ BackPanel.Top := (Screen.Height - BackPanel.Height) div 2;
+end;
+
+function THoldAdminForm.HoldAdminPro(var HoldNo: integer): boolean;
+begin
+ Application.CreateForm(THoldAdminForm, HoldAdminForm);
+ HoldAdminForm.ShowModal;
+ Result := HoldAdminForm.ReturnFlag;
+ if Result then
+    HoldNo := HoldAdminForm.HoldNo;
+ HoldAdminForm.Free;
+end;
+
+end.

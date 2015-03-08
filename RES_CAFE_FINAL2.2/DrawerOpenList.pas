@@ -1,0 +1,227 @@
+unit DrawerOpenList;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, Mask, DB, ADODB, Grids, DBGrids, ExtCtrls,
+  bsSkinCtrls, BusinessSkinForm, XiButton;
+
+type
+  TDrawerOpenListForm = class(TForm)
+    DBGrid: TDBGrid;
+    Query: TADOQuery;
+    DataSource: TDataSource;
+    QueryOpenDateTime: TDateTimeField;
+    QueryMachineID: TStringField;
+    QueryOpName: TStringField;
+    QueryReasons: TStringField;
+    QueryReasonData: TStringField;
+    Label1: TLabel;
+    DateEdit1: TMaskEdit;
+    TimeEdit1: TMaskEdit;
+    Label2: TLabel;
+    DateEdit2: TMaskEdit;
+    TimeEdit2: TMaskEdit;
+    OperatorEdit: TEdit;
+    OperatorCheckBox: TCheckBox;
+    MachineIDCheckBox: TCheckBox;
+    MachineIDEdit: TEdit;
+    bsBusinessSkinForm: TbsBusinessSkinForm;
+    DBGridPanel: TbsSkinPanel;
+    ControlPanel: TbsSkinPanel;
+    SearchButton: TXiButton;
+    ExitButton: TXiButton;
+    DVRBtn: TXiButton;
+    procedure OpenQuery(SQLStr: string);
+    procedure DateEditClick(Sender: TObject);
+    procedure TimeEditClick(Sender: TObject);
+    procedure OperatorCheckBoxClick(Sender: TObject);
+    procedure MachineIDCheckBoxClick(Sender: TObject);
+    procedure OperatorEditClick(Sender: TObject);
+    procedure MachineIDEditClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure SearchButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
+    procedure DrawerOpenListPro;
+    procedure QueryCalcFields(DataSet: TDataSet);
+    procedure DateEdit1Change(Sender: TObject);
+    procedure DVRBtnClick(Sender: TObject);
+  private
+    { Private declarations }
+    InvoiceDate: TDateTime;
+  public
+    { Public declarations }
+  end;
+
+var
+  DrawerOpenListForm: TDrawerOpenListForm;
+
+implementation
+
+uses DataUnit, UtilUnit, DatePanel, TimePanel, MachineIDSelect, MainMenu,
+  StaffList, SecurityCamera;
+
+{$R *.dfm}
+
+procedure TDrawerOpenListForm.OpenQuery(SQLStr: string);
+begin
+ Screen.Cursor := crHourGlass;
+ with Query do
+  begin
+   Active := False;
+   Connection := DataForm.ADOConnection;
+   SQL.Clear;
+   SQL.Add(SQLStr);
+   Active := True;
+  end;
+ Screen.Cursor := crDefault;
+end;
+
+procedure TDrawerOpenListForm.QueryCalcFields(DataSet: TDataSet);
+begin
+ with Query do
+  if FieldByName('Reasons').AsString <> '' then
+     FieldByName('ReasonData').AsString := 'Sales: ' + FieldByName('Reasons').AsString
+    else
+     FieldByName('ReasonData').AsString := 'Non Sales Open'; 
+end;
+
+procedure TDrawerOpenListForm.DateEditClick(Sender: TObject);
+var
+ DateTemp: TDateTime;
+begin
+ with Sender As TMaskEdit do
+  begin
+   DateTemp := TransferDate(Text);
+   if DateForm.ReadDatePro(DateTemp) then
+      Text := FormatDateTime('dd/mm/yyyy', DateTemp);
+  end;
+end;
+
+procedure TDrawerOpenListForm.TimeEditClick(Sender: TObject);
+var
+ TimeStr: string;
+begin
+ with Sender As TMaskEdit do
+  begin
+   TimeStr := Text;
+   if TimeForm.ReadTimePro(TimeStr) then
+      Text := TimeStr;
+  end;
+end;
+
+procedure TDrawerOpenListForm.OperatorCheckBoxClick(Sender: TObject);
+begin
+ if OperatorCheckBox.Checked then
+    OperatorEdit.Enabled := True
+   else
+    begin
+     OperatorEdit.Enabled := False;
+     OperatorEdit.Text := '';
+    end;  
+end;
+
+procedure TDrawerOpenListForm.MachineIDCheckBoxClick(Sender: TObject);
+begin
+ if MachineIDCheckBox.Checked then
+    MachineIDEdit.Enabled := True
+   else
+    begin
+     MachineIDEdit.Enabled := False;
+     MachineIDEdit.Text := '';
+    end;
+end;
+
+procedure TDrawerOpenListForm.OperatorEditClick(Sender: TObject);
+var
+ StaffName: string;
+begin
+ if StaffListForm.ListStaffPro(StaffName) then
+    OperatorEdit.Text := StaffName;
+end;
+
+procedure TDrawerOpenListForm.MachineIDEditClick(Sender: TObject);
+var
+ MachineName: string;
+begin
+ if MachineIDSelectForm.MachineIDSelectPro(MachineName) then
+     MachineIDEdit.Text := MachineName;
+end;
+
+procedure TDrawerOpenListForm.ExitButtonClick(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TDrawerOpenListForm.SearchButtonClick(Sender: TObject);
+var
+ SQLStr: string;
+ Date1, Date2: TDateTime;
+begin
+ Date1 := TransferDate(DateEdit1.Text) + StrToTime(TimeEdit1.Text);
+ Date2 := TransferDate(DateEdit2.Text) + StrToTime(TimeEdit2.Text);
+ SQLStr := 'Select * From DrawerOpenRecordTable ' +
+           'Where OpenDateTime>=' + ConvertDateTime(Date1) +
+           ' and OpenDateTime<=' + ConvertDateTime(Date2);
+ if MachineIDCheckBox.Checked then
+    SQLStr := SQLStr + ' and MachineID=' + Chr(39) + CheckQuotes(MachineIDEdit.Text) + Chr(39);
+ if OperatorCheckBox.Checked then
+    SQLStr := SQLStr + ' and OPName=' + Chr(39) + CheckQuotes(OperatorEdit.Text) + Chr(39);
+ OpenQuery(SQLStr);
+end;
+
+procedure TDrawerOpenListForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+ Query.Close;
+ Action := caFree;
+ DrawerOpenListForm := NIL;
+end;
+
+procedure TDrawerOpenListForm.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+ if Key = Chr(27) then Close;
+end;
+
+procedure TDrawerOpenListForm.DateEdit1Change(Sender: TObject);
+begin
+ if Not Supervisor and (Date - TransferDate(DateEdit1.Text) > InquirySalesRelatedReportDays) then
+    DateEdit1.Text := FormatDateTime('dd/mm/yyyy', Date - InquirySalesRelatedReportDays);
+end;
+
+procedure TDrawerOpenListForm.FormShow(Sender: TObject);
+begin
+ Top := (MainForm.ClientHeight - Height - MainForm.bsSkinMainMenuBar.Height) div 2;
+ Left := (MainForm.ClientWidth - Width) div 2;
+ DateEdit1.Text := FormatDateTime('dd/mm/yyyy', Date);
+ DateEdit2.Text := DateEdit1.Text;
+ TimeEdit1.Text := '00:00';
+ TimeEdit2.Text := '23:59';
+ OperatorCheckBox.Checked := False;
+ OperatorEdit.Enabled := False;
+ OperatorEdit.Text := '';
+ MachineIDCheckBox.Checked := False;
+ MachineIDEdit.Enabled := False;
+ MachineIDEdit.Text := '';
+end;
+
+procedure TDrawerOpenListForm.DrawerOpenListPro;
+begin
+ Application.CreateForm(TDrawerOpenListForm, DrawerOpenListForm);
+ 
+ DrawerOpenListForm.ShowModal;
+ DrawerOpenListForm.Free;
+end;
+
+procedure TDrawerOpenListForm.DVRBtnClick(Sender: TObject);
+begin
+ with Query do
+  InvoiceDate := Query.FieldByname('OpenDateTime').AsDateTime;
+  SecurityCameraForm.SecurityCameraPro(integer(StrToInt(DVRNo)),invoiceDate);
+
+
+end;
+
+end.
